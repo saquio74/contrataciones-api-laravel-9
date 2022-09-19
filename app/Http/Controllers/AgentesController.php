@@ -19,6 +19,10 @@ class AgentesController extends Controller
         if($request->servicio) array_push($where,['servicio.servicio','like',"%$request->servicio%"]);
         if($request->sector) array_push($where,['sector.sector','like',"%$request->sector%"]);
         if($request->inciso) array_push($where,['agentes.inciso','like',"%$request->inciso%"]);
+        if($request->hospitalId) array_push($where,['hospitales.id','=',$request->hospitalId]);
+        if($request->servicioId) array_push($where,['servicio.id','=',$request->servicioId]);
+        if($request->sectorId) array_push($where,['sector.id','=',$request->sectorId]);
+
         $agentes = DB::table("agentes")
                         ->select("agentes.id","legajo","dni","nombre","incisos.inciso", "hospitales.hospital", "servicio.servicio", "sector.sector","activo")
                         ->join('agenincs',"agentes.id","=","agenincs.agente_id")
@@ -27,7 +31,8 @@ class AgentesController extends Controller
                         ->join('sector',"agentes.sector_id","=","sector.id")
                         ->join('incisos',"agenincs.inciso_id","=","incisos.id")
                         ->orWhere($where)
-                        ->paginate($request->perPage ??10,['*'],'page',$request->page ?? 1);
+                        ->paginate($request->perPage ??10,$request->colums ?? ['*'],'page',$request->page ?? 1);
+        
         return response()->json($agentes);
     }
     

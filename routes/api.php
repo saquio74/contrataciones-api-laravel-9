@@ -26,6 +26,10 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(BaseUrl\AgenfacController::class)->group(function () {
         Route::post('/agenfac/updateLiquidacion', 'updateAmount');
         Route::get('/agenfac', 'index');
+        Route::get('/agenfac/{id}', 'facturacionById');
+        Route::post('/agenfac', 'store');
+        Route::put('/agenfac', 'update');
+        Route::delete('/agenfac/{id}', 'destroy');
     });
 });
 Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {

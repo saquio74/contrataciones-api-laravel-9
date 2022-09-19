@@ -11,7 +11,7 @@ class agenfac extends Model
     protected $table = 'agenfac';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'leg',
+        'agente_id',
         'periodo',
         'anio',
         'horas',
@@ -22,5 +22,11 @@ class agenfac extends Model
         'bonvalor',
         'total',
         'hospital',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 }
