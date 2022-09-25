@@ -10,14 +10,18 @@ use Illuminate\Http\Request;
 
 class AgenfacController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    public $validations = [
+        "agente_id" => "required",
+        "periodo" => "required",
+        "anio" => "required",
+        "hospital" => "required",
+        "horas" => "required",
+        "inc" => "required",
+        "bonificacion" => "required"
+    ];
     public function index(Request $request)
     {
-        $where = [['agentes.deleted_at', '=', null]];
+        $where = [['agenfac.deleted_at', '=', null]];
         if ($request->nombre) array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
         if ($request->hospital) array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
         if ($request->servicio) array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
@@ -54,10 +58,10 @@ class AgenfacController extends Controller
     public function store(Request $request)
     {
 
-        $this->validateModel($request);
+        $this->ValidarModelo($request, $this->validations);
         $liquidacion = new agenfac($request->all());
         $this->liquidarHoras($liquidacion);
-        
+
         $this->setBase('created', $liquidacion);
 
         $liquidacion->save();
@@ -65,44 +69,15 @@ class AgenfacController extends Controller
         return response()->json($liquidacion, 200);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\agenfac  $agenfac
-     * @return \Illuminate\Http\Response
-     */
-    public function show(agenfac $agenfac)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\agenfac  $agenfac
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(agenfac $agenfac)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\agenfac  $agenfac
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request)
     {
-        $this->validateModel($request, 'required');
+        $this->ValidarModelo($request, $this->validations, true);
         $liquidacion = agenfac::find($request->id);
         if ($liquidacion == null) return response()->json(["mensaje" => "No se encontro liquidacion"], 422);
         $liquidacion->horas = $request->horas;
         $liquidacion->bonificacion = $request->bonificacion;
         $this->liquidarHoras($liquidacion);
-        
+
         $this->setBase('updated', $liquidacion);
 
         $liquidacion->save();
@@ -110,21 +85,15 @@ class AgenfacController extends Controller
         return response()->json($liquidacion, 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\agenfac  $agenfac
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(int $id)
     {
         $facturacion = $this->facturacionById($id);
-        if(!$facturacion) return response()->json(["mensaje"=>"no se encontro facturacion"],422);
-        $this->setBase('deleted',$facturacion);
-        
+        if (!$facturacion) return response()->json(["mensaje" => "no se encontro facturacion"], 422);
+        $this->setBase('deleted', $facturacion);
+
         $facturacion->save();
 
-        return response()->json(["mensaje"=>"facturacion borrada correctamente"],201);
+        return response()->json(["mensaje" => "facturacion borrada correctamente"], 201);
     }
     public function updateAmount(Request $request)
     {
@@ -159,20 +128,6 @@ class AgenfacController extends Controller
         $liquidacion->save();
         return $liquidacion;
     }
-    public function validateModel(Request $request, string $id = "")
-    {
-        $request->validate([
-            "id" => $id,
-            "agente_id" => "required",
-            "periodo" => "required",
-            "anio" => "required",
-            "hospital" => "required",
-            "horas" => "required",
-            "inc" => "required",
-            "bonificacion" => "required"
-
-        ]);
-    }
     public function liquidarHoras(agenfac $liquidacion)
     {
         $inciso = incisos::find($liquidacion->inc);
@@ -180,18 +135,14 @@ class AgenfacController extends Controller
         $liquidacion->subtot = number_format($liquidacion->horas * $inciso->valor, 2, '.', '');
         $liquidacion->bonvalor = number_format($liquidacion->subtot * $liquidacion->bonificacion / 100, 2, '.', '');
         $liquidacion->total = $liquidacion->subtot + $liquidacion->bonvalor;
-        
     }
-    public function facturacionById(int $id){
+    public function facturacionById(int $id)
+    {
         $condiciones = [
-            ['id',$id],
-            ['deleted_at','=',null]
+            ['id', $id],
+            ['deleted_at', '=', null]
         ];
         $facturacion = agenfac::where($condiciones)->first();
         return $facturacion;
-    }
-    public function AgenteByIdResponse(int $id){
-        $facturacion = $this->facturacionById($id);
-        return response()->json(["facturacion"=> $facturacion],200);
     }
 }

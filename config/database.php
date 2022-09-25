@@ -147,5 +147,8 @@ return [
         ],
 
     ],
+    'mysql' => [
+        'strict' => false,
+    ]
 
 ];

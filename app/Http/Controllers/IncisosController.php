@@ -7,69 +7,44 @@ use Illuminate\Http\Request;
 
 class IncisosController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $validations = [
+        "inciso" => "required",
+        "valor" => "required"
+    ];
+    public function index(Request $request)
     {
-        //
+        $where = [['incisos.deleted_at', '=', null]];
+
+        if ($request->inciso) array_push($where, ['incisos.inciso', 'like', "%$request->inciso%"]);
+        if ($request->id) array_push($where, ['incisos.id', '=', $request->id]);
+
+        $agentes = incisos::Where($where)
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+
+        return response()->json($agentes);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $this->ValidarModelo($request, $this->validations);
+        $hospital = new incisos($request->all());
+        $this->setBase('created', $hospital);
+        $hospital->save();
+
+        return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\incisos  $incisos
-     * @return \Illuminate\Http\Response
-     */
-    public function show(incisos $incisos)
+    public function update(Request $request)
     {
-        //
-    }
+        $this->ValidarModelo($request, $this->validations, true);
+        $inciso = incisos::find($request->id);
+        $this->setBase('updated', $inciso);
+        $inciso->inciso = $request->inciso;
+        $inciso->valor = $request->valor;
+        $inciso->save();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\incisos  $incisos
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(incisos $incisos)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\incisos  $incisos
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, incisos $incisos)
-    {
-        //
+        return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
     /**
@@ -78,8 +53,23 @@ class IncisosController extends Controller
      * @param  \App\Models\incisos  $incisos
      * @return \Illuminate\Http\Response
      */
-    public function destroy(incisos $incisos)
+    public function destroy(int $id)
     {
-        //
+        $inciso = $this->incisoById($id);
+        if (!$inciso) return response()->json(["mensaje" => "no se encontro inciso"], 422);
+        $this->setBase('deleted', $inciso);
+
+        $inciso->save();
+
+        return response()->json(["mensaje" => "inciso borrado correctamente"], 201);
+    }
+    public function incisoById(int $id)
+    {
+        $condiciones = [
+            ['id', $id],
+            ['deleted_at', '=', null]
+        ];
+        $inciso = incisos::where($condiciones)->first();
+        return $inciso;
     }
 }
