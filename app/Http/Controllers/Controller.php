@@ -21,5 +21,9 @@ class Controller extends BaseController
         if($validateId) $validations['id'] = 'required';
         $request->validate($validations);
     }
+    public function findById($query,$id){
+        return $query->where(['id', $id],
+        ['deleted_at', '=', null]);
+    }
 
 }

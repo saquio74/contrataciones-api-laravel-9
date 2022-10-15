@@ -52,6 +52,27 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/incisos', 'update');
         Route::delete('/incisos/{id}', 'destroy');
     });
+    Route::controller(BaseUrl\SectorController::class)->group(function () {
+        Route::get('/sector', 'index');
+        Route::get('/sector/{id}', 'sectorById');
+        Route::post('/sector', 'store');
+        Route::put('/sector', 'update');
+        Route::delete('/sector/{id}', 'destroy');
+    });
+    Route::controller(BaseUrl\ServicioController::class)->group(function () {
+        Route::get('/servicio', 'index');
+        Route::get('/servicio/{id}', 'servicioById');
+        Route::post('/servicio', 'store');
+        Route::put('/servicio', 'update');
+        Route::delete('/servicio/{id}', 'destroy');
+    });
+    Route::controller(BaseUrl\ServicioController::class)->group(function () {
+        Route::get('/servicio', 'index');
+        Route::get('/servicio/{id}', 'servicioById');
+        Route::post('/servicio', 'store');
+        Route::put('/servicio', 'update');
+        Route::delete('/servicio/{id}', 'destroy');
+    });
 });
 Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
     Route::post('/register', 'Register');

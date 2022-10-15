@@ -7,69 +7,42 @@ use Illuminate\Http\Request;
 
 class SectorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $validations = [
+        "sector" => "required",
+    ];
+    public function index(Request $request)
     {
-        //
+        $where = [['sector.deleted_at', '=', null]];
+
+        if ($request->sector) array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
+        if ($request->id) array_push($where, ['sector.id', '=', $request->id]);
+
+        $sector = sector::Where($where)
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+
+        return response()->json($sector);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $this->ValidarModelo($request, $this->validations);
+        $sector = new sector($request->all());
+        $this->setBase('created', $sector);
+        $sector->save();
+
+        return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\sector  $sector
-     * @return \Illuminate\Http\Response
-     */
-    public function show(sector $sector)
+    public function update(Request $request)
     {
-        //
-    }
+        $this->ValidarModelo($request, $this->validations, true);
+        $sector = sector::find($request->id);
+        $this->setBase('updated', $sector);
+        $sector->sector = $request->sector;
+        $sector->save();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\sector  $sector
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(sector $sector)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\sector  $sector
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, sector $sector)
-    {
-        //
+        return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
     /**
@@ -78,8 +51,23 @@ class SectorController extends Controller
      * @param  \App\Models\sector  $sector
      * @return \Illuminate\Http\Response
      */
-    public function destroy(sector $sector)
+    public function destroy(int $id)
     {
-        //
+        $sector = $this->sectorById($id);
+        if (!$sector) return response()->json(["mensaje" => "no se encontro sector"], 422);
+        $this->setBase('deleted', $sector);
+
+        $sector->save();
+
+        return response()->json(["mensaje" => "sector borrado correctamente"], 201);
+    }
+    public function sectorById(int $id)
+    {
+        $condiciones = [
+            ['id', $id],
+            ['deleted_at', '=', null]
+        ];
+        $sector = sector::where($condiciones)->first();
+        return $sector;
     }
 }
