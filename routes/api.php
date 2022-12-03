@@ -73,8 +73,16 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/servicio', 'update');
         Route::delete('/servicio/{id}', 'destroy');
     });
+    Route::controller(BaseUrl\RolesController::class)->group(function () {
+        Route::get('/roles', 'index');
+        Route::get('/roles/{id}', 'rolesById');
+        Route::post('/roles', 'store');
+        Route::put('/roles', 'update');
+        Route::delete('/roles/{id}', 'destroy');
+    });
 });
 Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
     Route::post('/register', 'Register');
     Route::post('/login', 'login');
+    Route::get('/test/{id}', 'testUsers');
 });

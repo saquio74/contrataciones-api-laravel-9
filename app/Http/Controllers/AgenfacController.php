@@ -22,19 +22,42 @@ class AgenfacController extends Controller
     public function index(Request $request)
     {
         $where = [['agenfac.deleted_at', '=', null]];
-        if ($request->nombre) array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
-        if ($request->hospital) array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
-        if ($request->servicio) array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
-        if ($request->sector) array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
-        if ($request->hospitalId) array_push($where, ['hospitales.id', '=', $request->hospitalId]);
-        if ($request->servicioId) array_push($where, ['servicio.id', '=', $request->servicioId]);
-        if ($request->sectorId) array_push($where, ['sector.id', '=', $request->sectorId]);
-        if ($request->periodo) array_push($where, ['agenfac.periodo', '=', $request->periodo]);
-        if ($request->anio) array_push($where, ['agenfac.anio', '=', $request->anio]);
+        if ($request->nombre)
+            array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
+        if ($request->hospital)
+            array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
+        if ($request->servicio)
+            array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
+        if ($request->sector)
+            array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
+        if ($request->hospitalId)
+            array_push($where, ['hospitales.id', '=', $request->hospitalId]);
+        if ($request->servicioId)
+            array_push($where, ['servicio.id', '=', $request->servicioId]);
+        if ($request->sectorId)
+            array_push($where, ['sector.id', '=', $request->sectorId]);
+        if ($request->periodo)
+            array_push($where, ['agenfac.periodo', '=', $request->periodo]);
+        if ($request->anio)
+            array_push($where, ['agenfac.anio', '=', $request->anio]);
 
 
         $agentes = DB::table("agenfac")
-            ->select("agenfac.id", "legajo", "incisos.inciso", "nombre", "hospitales.hospital", "servicio.servicio", "sector.sector", 'periodo', 'anio', "horas", "subtot", "bonvalor", "total")
+            ->select(
+                "agenfac.id",
+                "legajo",
+                "incisos.inciso",
+                "nombre",
+                "hospitales.hospital",
+                "servicio.servicio",
+                "sector.sector",
+                'periodo',
+                'anio',
+                "horas",
+                "subtot",
+                "bonvalor",
+                "total"
+            )
             ->join('agenincs', "agenfac.inc", "=", "agenincs.inciso_id")
             ->join('agentes', "agenfac.agente_id", "=", "agentes.id")
             ->join('hospitales', "agenfac.hospital", "=", "hospitales.id")
@@ -49,12 +72,6 @@ class AgenfacController extends Controller
         return response()->json($agentes);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
 
@@ -73,7 +90,8 @@ class AgenfacController extends Controller
     {
         $this->ValidarModelo($request, $this->validations, true);
         $liquidacion = agenfac::find($request->id);
-        if ($liquidacion == null) return response()->json(["mensaje" => "No se encontro liquidacion"], 422);
+        if ($liquidacion == null)
+            return response()->json(["mensaje" => "No se encontro liquidacion"], 422);
         $liquidacion->horas = $request->horas;
         $liquidacion->bonificacion = $request->bonificacion;
         $this->liquidarHoras($liquidacion);
@@ -88,7 +106,8 @@ class AgenfacController extends Controller
     public function destroy(int $id)
     {
         $facturacion = $this->facturacionById($id);
-        if (!$facturacion) return response()->json(["mensaje" => "no se encontro facturacion"], 422);
+        if (!$facturacion)
+            return response()->json(["mensaje" => "no se encontro facturacion"], 422);
         $this->setBase('deleted', $facturacion);
 
         $facturacion->save();
@@ -101,7 +120,8 @@ class AgenfacController extends Controller
         $listado = [];
         foreach ($liquidaciones as $liquidacionOne) {
             array_push($listado, $this->updateFac($liquidacionOne));
-        };
+        }
+        ;
         return response()->json($listado);
     }
     public function updateFac(agenfac $liquidacionOne)

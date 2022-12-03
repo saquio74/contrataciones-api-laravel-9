@@ -49,12 +49,6 @@ class PermissionsController extends Controller
         return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\permissions  $permissions
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(int $id)
     {
         $permissions = $this->permissionsById($id);

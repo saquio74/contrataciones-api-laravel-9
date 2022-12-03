@@ -14,8 +14,10 @@ class HospitalesController extends Controller
     public function index(Request $request)
     {
         $where = [['hospitales.deleted_at', '=', null]];
-        if ($request->hospital) array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
-        if ($request->id) array_push($where, ['hospitales.id', '=', $request->id]);
+        if ($request->hospital)
+            array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
+        if ($request->id)
+            array_push($where, ['hospitales.id', '=', $request->id]);
 
         $agentes = hospitales::Where($where)
             ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
@@ -38,7 +40,8 @@ class HospitalesController extends Controller
     {
         $this->ValidarModelo($request, $this->validations, true);
         $hospital = hospitales::find($request->id);
-        if ($hospital == null) return response()->json(["mensaje" => "No se encontro liquidacion"], 422);
+        if ($hospital == null)
+            return response()->json(["mensaje" => "No se encontro liquidacion"], 422);
         $hospital->hospital = $request->hospital;
         $this->setBase('updated', $hospital);
         $hospital->save();
@@ -46,16 +49,11 @@ class HospitalesController extends Controller
         return response()->json(["message" => "Se ha modificado correctamente"], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\hospitales  $hospitales
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(int $hospitalId)
     {
         $hospital = $this->hospitalById($hospitalId);
-        if (!$hospital) return response()->json(["mensaje" => "no se encontro hospital"], 422);
+        if (!$hospital)
+            return response()->json(["mensaje" => "no se encontro hospital"], 422);
         $this->setBase('deleted', $hospital);
 
         $hospital->save();

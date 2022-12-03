@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\BaseControllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -17,7 +17,7 @@ class AuthController extends Controller
             "password" => "required|confirmed"
         ]);
         $data['password'] = Hash::make($request->password);
-        
+
         $user = User::create($data);
         $user->token = $user->createToken('authToken')->accessToken;
 
@@ -27,19 +27,20 @@ class AuthController extends Controller
     }
     public function GetUser()
     {
-        return response()->json(auth()->user(),200);
+        
+        return response()->json(auth()->user(), 200);
     }
     public function login(Request $request)
     {
         $data = $request->validate([
-            "email"=>"email|required",
-            "password"=>'required'
+            "email" => "email|required",
+            "password" => 'required'
         ]);
-        if(!auth()->attempt($data)){
-            return response()->json(["invalid credentials"],401);
+        if (!auth()->attempt($data)) {
+            return response()->json(["invalid credentials"], 401);
         }
-        $user = User::whereEmail(auth()->user()->email)->first();
-        $user->token  = $user->createToken('authToken')->accessToken;
+        $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
+        $user->token = $user->createToken('authToken')->accessToken;
 
         return response()->json([
             "user" => $user

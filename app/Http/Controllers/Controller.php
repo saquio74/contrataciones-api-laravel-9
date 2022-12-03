@@ -25,5 +25,4 @@ class Controller extends BaseController
         return $query->where(['id', $id],
         ['deleted_at', '=', null]);
     }
-
 }

@@ -45,12 +45,6 @@ class SectorController extends Controller
         return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\sector  $sector
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(int $id)
     {
         $sector = $this->sectorById($id);

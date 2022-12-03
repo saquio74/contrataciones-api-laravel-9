@@ -15,8 +15,10 @@ class IncisosController extends Controller
     {
         $where = [['incisos.deleted_at', '=', null]];
 
-        if ($request->inciso) array_push($where, ['incisos.inciso', 'like', "%$request->inciso%"]);
-        if ($request->id) array_push($where, ['incisos.id', '=', $request->id]);
+        if ($request->inciso)
+            array_push($where, ['incisos.inciso', 'like', "%$request->inciso%"]);
+        if ($request->id)
+            array_push($where, ['incisos.id', '=', $request->id]);
 
         $agentes = incisos::Where($where)
             ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
@@ -47,16 +49,12 @@ class IncisosController extends Controller
         return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\incisos  $incisos
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(int $id)
     {
         $inciso = $this->incisoById($id);
-        if (!$inciso) return response()->json(["mensaje" => "no se encontro inciso"], 422);
+        if (!$inciso)
+            return response()->json(["mensaje" => "no se encontro inciso"], 422);
         $this->setBase('deleted', $inciso);
 
         $inciso->save();

@@ -7,14 +7,25 @@ use Illuminate\Http\Request;
 
 class RolesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $validations = [
+        "roles" => "required",
+    ];
+    public function index(Request $request)
     {
-        //
+        $where = [['roles.deleted_at', '=', null]];
+
+        if ($request->rol)
+            array_push($where, ['roles.name', 'like', "%$request->rol%"]);
+        if ($request->description)
+            array_push($where, ['roles.description', 'like', "%$request->description%"]);
+        if ($request->id)
+            array_push($where, ['roles.id', '=', $request->id]);
+
+        $roles = roles::with('permissionsrole.permissions')->Where($where)
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1)
+            ;
+
+        return response()->json($roles);
     }
 
     /**
