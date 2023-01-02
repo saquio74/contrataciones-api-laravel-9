@@ -16,6 +16,10 @@ class AgentesController extends Controller
         $where = [['agentes.deleted_at', '=', null]];
         if ($request->nombre)
             array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
+        if ($request->dni)
+            array_push($where, ['agentes.dni', 'like', "%$request->dni%"]);
+        if ($request->legajo)
+            array_push($where, ['agentes.legajo', 'like', "%$request->legajo%"]);
         if ($request->hospital)
             array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
         if ($request->servicio)
