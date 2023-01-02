@@ -11,6 +11,5 @@ class incisos extends Model
     protected $table = 'incisos';
 
     protected $primaryKey = 'id';
-    protected $fillable=['inciso','valor'];
-
+    protected $fillable = ['inciso', 'valor'];
 }

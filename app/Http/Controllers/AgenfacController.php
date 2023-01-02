@@ -126,7 +126,7 @@ class AgenfacController extends Controller
     }
     public function updateFac(agenfac $liquidacionOne)
     {
-        $inciso = incisos::where("ID", $liquidacionOne->INC)->first();
+        $inciso = incisos::find($liquidacionOne->INC);
 
         $liquidacionOne->SUBTOT = number_format($liquidacionOne->HORAS * $inciso->VALOR, 2, '.', '');
         $liquidacionOne->BONVALOR = number_format($liquidacionOne->SUBTOT * $liquidacionOne->BONIFICACION / 100, 2, '.', '');

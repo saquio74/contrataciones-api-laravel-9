@@ -21,4 +21,8 @@ class ageninc extends Model
         'updated_by',
         'deleted_by',
     ];
+    public function inciso()
+    {
+        return $this->belongsTo(incisos::class, 'inciso_id');
+    }
 }

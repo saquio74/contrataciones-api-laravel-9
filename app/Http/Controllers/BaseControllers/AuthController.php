@@ -27,8 +27,8 @@ class AuthController extends Controller
     }
     public function GetUser()
     {
-        
-        return response()->json(auth()->user(), 200);
+        $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
+        return response()->json($user, 200);
     }
     public function login(Request $request)
     {
@@ -42,8 +42,6 @@ class AuthController extends Controller
         $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
         $user->token = $user->createToken('authToken')->accessToken;
 
-        return response()->json([
-            "user" => $user
-        ]);
+        return response()->json($user, 200);
     }
 }

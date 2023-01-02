@@ -28,4 +28,20 @@ class agentes extends Model
         'updated_by',
         'deleted_by',
     ];
+    public function hospital()
+    {
+        return $this->belongsTo(hospitales::class, 'hospital_id');
+    }
+    public function sector()
+    {
+        return $this->belongsTo(sector::class, 'sector_id');
+    }
+    public function servicio()
+    {
+        return $this->belongsTo(servicio::class, 'servicio_id');
+    }
+    public function ageninc()
+    {
+        return $this->hasMany(ageninc::class, 'agente_id', 'id');
+    }
 }
