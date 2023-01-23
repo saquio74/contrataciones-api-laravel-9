@@ -10,10 +10,46 @@ use App\Http\Controllers\AgenincController as agenincController;
 
 class AgentesController extends Controller
 {
+    private $baseSelect = [
+        "agentes.id",
+        "agentes.legajo",
+        "agentes.dni",
+        "agentes.nombre",
+        "agentes.horario",
+        "agentes.telefono",
+        "agentes.activo",
+        "agentes.created_at",
+        "agentes.updated_at",
+        "agentes.deleted_at",
+        "agentes.created_by",
+        "agentes.updated_by",
+        "agentes.deleted_by",
+        "agentes.hospital_id",
+        "agentes.sector_id",
+        "agentes.servicio_id"
+    ];
+    public function baseGetAgentes($select, $where, $orderBy, $with = [])
+    {
+        array_push($where, ['agentes.deleted_at', '=', null]);
+        $agente = agentes::Select($select)
+            ->Where($where)
+            ->with($with)
+            ->join('hospitales', 'hospitales.id', '=', 'agentes.hospital_id')
+            ->join('servicio', 'servicio.id', '=', 'agentes.servicio_id')
+            ->join('sector', 'sector.id', '=', 'agentes.sector_id')
+            ->distinct();
+        if ($orderBy) $agente->orderBy($orderBy);
+        return $agente;
+    }
+
     public function index(Request $request)
     {
+        return $this->searchAgentes($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+    }
 
-        $where = [['agentes.deleted_at', '=', null]];
+    public function searchAgentes(Request $request)
+    {
+        $where = [];
         if ($request->nombre)
             array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
         if ($request->dni)
@@ -29,41 +65,18 @@ class AgentesController extends Controller
         if ($request->inciso)
             array_push($where, ['agentes.inciso', 'like', "%$request->inciso%"]);
         if ($request->hospitalId)
-            array_push($where, ['hospital.id', '=', $request->hospitalId]);
+            array_push($where, ['hospitales.id', '=', $request->hospitalId]);
         if ($request->servicioId)
             array_push($where, ['servicio.id', '=', $request->servicioId]);
         if ($request->sectorId)
             array_push($where, ['sector.id', '=', $request->sectorId]);
 
-        $agentesPaginado = agentes::select(
-            "agentes.id",
-            "agentes.legajo",
-            "agentes.dni",
-            "agentes.nombre",
-            "agentes.horario",
-            "agentes.telefono",
-            "agentes.activo",
-            "agentes.created_at",
-            "agentes.updated_at",
-            "agentes.deleted_at",
-            "agentes.created_by",
-            "agentes.updated_by",
-            "agentes.deleted_by",
-            "agentes.hospital_id",
-            "agentes.sector_id",
-            "agentes.servicio_id"
-        )
-            ->with('sector')
-            ->with('hospital')
-            ->with('servicio')
-            ->with('ageninc.inciso')
-            ->orWhere($where)
-            ->join('hospitales', 'hospitales.id', '=', 'agentes.hospital_id')
-            ->join('sector', 'sector.id', '=', 'agentes.sector_id')
-            ->join('servicio', 'servicio.id', '=', 'agentes.servicio_id')
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
-
-        return response()->json($agentesPaginado);
+        return $this->baseGetAgentes(
+            $this->baseSelect,
+            $where,
+            null,
+            ['sector', 'hospital', 'servicio', 'ageninc.inciso']
+        );
     }
 
     public function store(Request $request)
@@ -77,7 +90,7 @@ class AgentesController extends Controller
 
         $agenteExiste = agentes::where($condiciones)->first();
         if ($agenteExiste)
-            return response()->json(['mensaje' => 'El agente ya existe'], 422);
+            return response()->json(['message' => 'El agente ya existe'], 422);
 
         $agente = new agentes($request->all());
 
@@ -85,15 +98,15 @@ class AgentesController extends Controller
         $agente->activo = true;
         $agente->save();
 
-        $this->guardarIncisos(json_decode($request->incisos), $agente->id);
+        $this->guardarIncisos($request->incisos, $agente->id);
 
-        return response()->json(['mensaje' => 'Guardado correctamente'], 201);
+        return response()->json(['message' => 'Guardado correctamente'], 201);
     }
 
     public function update(Request $request)
     {
         $this->validateModel($request, "required");
-        $agente = $this->agenteById($request->id);
+        $agente = $this->getById($request->id);
 
         if (!$agente)
             return response()->json(["response" => "no se encontro agente"], 422);
@@ -117,14 +130,14 @@ class AgentesController extends Controller
 
     public function destroy(int $id)
     {
-        $agente = $this->agenteById($id);
+        $agente = $this->getById($id);
         if (!$agente)
-            return response()->json(["mensaje" => "no se encontro agente"], 422);
+            return response()->json(["message" => "no se encontro agente"], 422);
 
         $this->setBase('deleted', $agente);
         app(agenincController::class)->deleteIncisoByAgente($agente->id);
         $agente->save();
-        return response()->json(["mensaje" => "Agente borrado correctamente"], 201);
+        return response()->json(["message" => "Agente borrado correctamente"], 201);
     }
 
     public function validateModel(Request $request, string $id = "")
@@ -150,16 +163,58 @@ class AgentesController extends Controller
 
     public function agenteById(int $id)
     {
-        $condiciones = [
-            ['id', $id],
-            ['agentes.deleted_at', '=', null]
-        ];
-        $agente = agentes::with('sector')
-            ->with('hospital')
-            ->with('servicio')
-            ->with('ageninc.inciso')->where($condiciones)->first();
+        $agente = $this->getById($id);
         if ($agente == null)
             return response()->json("No se encontro agente", 422);
         return response()->json($agente, 200);
+    }
+
+    public function getById(int $id)
+    {
+        return $this->baseGetAgentes($this->baseSelect, [
+            ['agentes.id', $id],
+            ['agentes.deleted_at', '=', null]
+        ], null, ['sector', 'hospital', 'servicio', 'ageninc.inciso'])->first();
+    }
+
+    public function getServicios(Request $request)
+    {
+        $request->validate([
+            "hospitalId" => 'required'
+        ]);
+        $where = [['hospitales.id', '=', $request->hospitalId]];
+        if ($request->servicio)
+            array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
+
+        return $this->baseGetAgentes(['servicio.id', 'servicio.servicio'], $where, 'servicio.servicio')->get();
+    }
+
+    public function getSectores(Request $request)
+    {
+        $request->validate([
+            "hospitalId" => 'required',
+            "servicioId" => 'required'
+        ]);
+
+        $where = [['hospitales.id', '=', $request->hospitalId], ['servicio.id', '=', $request->servicioId]];
+        if ($request->sector)
+            array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
+
+        return $this->baseGetAgentes(
+            ['sector.id', 'sector.sector'],
+            $where,
+            'sector.sector'
+        )->get();
+    }
+
+    public function getAgentesLiquidar(Request $request)
+    {
+        $request->validate([
+            "hospitalId" => 'required',
+            "servicioId" => 'required',
+            "sectorId" => 'required'
+        ]);
+
+        return $this->searchAgentes($request)->get();
     }
 }

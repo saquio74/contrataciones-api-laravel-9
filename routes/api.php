@@ -19,6 +19,9 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(BaseUrl\AgentesController::class)->group(
         function () {
             Route::get('/agentes', 'index');
+            Route::get('/agentes/getAgentesLiquidar', 'getAgentesLiquidar');
+            Route::get('/agentes/getServicios', 'getServicios');
+            Route::get('/agentes/getSectores', 'getSectores');
             Route::get('/agentes/{id}', 'AgenteById');
             Route::post('/agentes', 'store');
             Route::put('/agentes', 'update');
@@ -29,10 +32,10 @@ Route::middleware('auth:api')->group(function () {
         function () {
             Route::post('/agenfac/updateLiquidacion', 'updateAmount');
             Route::get('/agenfac', 'index');
-            Route::get('/agenfac/{id}', 'facturacionById');
             Route::post('/agenfac', 'store');
             Route::put('/agenfac', 'update');
             Route::delete('/agenfac/{id}', 'destroy');
+            Route::get('/agenfac/{id}', 'facturacionById');
         }
     );
     Route::controller(BaseUrl\ComplementariaController::class)->group(

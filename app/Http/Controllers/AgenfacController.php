@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\agenfac;
 use App\Models\incisos;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\agentes;
 
 class AgenfacController extends Controller
 {
@@ -120,8 +120,7 @@ class AgenfacController extends Controller
         $listado = [];
         foreach ($liquidaciones as $liquidacionOne) {
             array_push($listado, $this->updateFac($liquidacionOne));
-        }
-        ;
+        };
         return response()->json($listado);
     }
     public function updateFac(agenfac $liquidacionOne)
@@ -163,6 +162,7 @@ class AgenfacController extends Controller
             ['deleted_at', '=', null]
         ];
         $facturacion = agenfac::where($condiciones)->first();
+        if (is_null($facturacion)) return response()->json(['message' => 'no se encontro liquidacion'], 422);
         return $facturacion;
     }
 }

@@ -20,6 +20,7 @@ class HospitalesController extends Controller
             array_push($where, ['hospitales.id', '=', $request->id]);
 
         $agentes = hospitales::Where($where)
+            ->orderBy('hospitales.hospital')
             ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
 
         return response()->json($agentes);
