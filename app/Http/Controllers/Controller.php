@@ -12,17 +12,25 @@ use App\Models as modelo;
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-    
-    public function setBase(string $property, $model ){
+
+    public function setBase(string $property, $model)
+    {
         $model["{$property}_at"] = date('Y-m-d H:i:s');
         $model["{$property}_by"] = Auth()->User()->id;
+        return $model;
     }
-    public function ValidarModelo(Request $request, array $validations, bool $validateId = false){
-        if($validateId) $validations['id'] = 'required';
+
+    public function ValidarModelo(Request $request, array $validations, bool $validateId = false)
+    {
+        if ($validateId) $validations['id'] = 'required';
         $request->validate($validations);
     }
-    public function findById($query,$id){
-        return $query->where(['id', $id],
-        ['deleted_at', '=', null]);
+
+    public function findById($query, $id)
+    {
+        return $query->where(
+            ['id', $id],
+            ['deleted_at', '=', null]
+        );
     }
 }

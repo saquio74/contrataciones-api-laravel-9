@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class agenfac extends Model
 {
-    use HasFactory;
     protected $table = 'agenfac';
     protected $primaryKey = 'id';
     protected $fillable = [
@@ -29,4 +28,16 @@ class agenfac extends Model
         'updated_by',
         'deleted_by',
     ];
+    public function hospitalInfo()
+    {
+        return $this->belongsTo(hospitales::class, 'hospital');
+    }
+    public function agente()
+    {
+        return $this->belongsTo(agentes::class, 'agente_id');
+    }
+    public function inciso()
+    {
+        return $this->belongsTo(incisos::class, 'inc', 'id');
+    }
 }

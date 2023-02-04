@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\agentes;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AgenincController as agenincController;
-
+use DateTime;
 
 class AgentesController extends Controller
 {
@@ -28,6 +27,7 @@ class AgentesController extends Controller
         "agentes.sector_id",
         "agentes.servicio_id"
     ];
+
     public function baseGetAgentes($select, $where, $orderBy, $with = [])
     {
         array_push($where, ['agentes.deleted_at', '=', null]);
@@ -37,6 +37,7 @@ class AgentesController extends Controller
             ->join('hospitales', 'hospitales.id', '=', 'agentes.hospital_id')
             ->join('servicio', 'servicio.id', '=', 'agentes.servicio_id')
             ->join('sector', 'sector.id', '=', 'agentes.sector_id')
+            ->join('agenfac', 'agenfac.agente_id', '=', 'agentes.id')
             ->distinct();
         if ($orderBy) $agente->orderBy($orderBy);
         return $agente;
@@ -44,10 +45,11 @@ class AgentesController extends Controller
 
     public function index(Request $request)
     {
-        return $this->searchAgentes($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+        return $this->searchAgentes($request, ['sector', 'hospital', 'servicio', 'ageninc.inciso'])
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
 
-    public function searchAgentes(Request $request)
+    public function searchAgentes(Request $request, $with = [])
     {
         $where = [];
         if ($request->nombre)
@@ -71,11 +73,12 @@ class AgentesController extends Controller
         if ($request->sectorId)
             array_push($where, ['sector.id', '=', $request->sectorId]);
 
+        // DD($now);
         return $this->baseGetAgentes(
             $this->baseSelect,
             $where,
             null,
-            ['sector', 'hospital', 'servicio', 'ageninc.inciso']
+            $with
         );
     }
 
@@ -215,6 +218,19 @@ class AgentesController extends Controller
             "sectorId" => 'required'
         ]);
 
-        return $this->searchAgentes($request)->get();
+        return $this->searchAgentes($request, ['sector', 'hospital', 'servicio', 'ageninc.inciso', 'liquidacionActual'])->get();
+    }
+    public function getLiquidados(Request $request)
+    {
+        $request->validate([
+            "hospitalId" => 'required'
+        ]);
+        $agentes = $this->searchAgentes($request, ['sector', 'hospital', 'servicio', 'ageninc.inciso', 'liquidacionActual'])->get();
+        $agentes = $agentes->sortBy([
+            fn ($a, $b) => $a['servicio_id'] <=> $b['servicio_id'],
+            fn ($a, $b) => $b['sector_id'] <=> $a['sector_id'],
+        ]);
+
+        return $agentes->values()->all();
     }
 }

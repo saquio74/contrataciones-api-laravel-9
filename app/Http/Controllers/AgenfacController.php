@@ -6,11 +6,10 @@ use App\Models\agenfac;
 use App\Models\incisos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Models\agentes;
 
 class AgenfacController extends Controller
 {
-    public $validations = [
+    private $validations = [
         "agente_id" => "required",
         "periodo" => "required",
         "anio" => "required",
@@ -19,8 +18,29 @@ class AgenfacController extends Controller
         "inc" => "required",
         "bonificacion" => "required"
     ];
-    public function index(Request $request)
+    private $select = [
+        "agenfac.id",
+        "legajo",
+        "incisos.inciso",
+        "inc",
+        "agente_id",
+        "nombre",
+        "hospitales.hospital",
+        "servicio.servicio",
+        "sector.sector",
+        'periodo',
+        'agenfac.valor',
+        'bonificacion',
+        'agenfac.hospital',
+        'anio',
+        "horas",
+        "subtot",
+        "bonvalor",
+        "total"
+    ];
+    private function getLiquidacion(Request $request, $with = [], $select = null)
     {
+        $select ??= $this->select;
         $where = [['agenfac.deleted_at', '=', null]];
         if ($request->nombre)
             array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
@@ -30,46 +50,31 @@ class AgenfacController extends Controller
             array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
         if ($request->sector)
             array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
-        if ($request->hospitalId)
-            array_push($where, ['hospitales.id', '=', $request->hospitalId]);
+        if ($request->hospital_id)
+            array_push($where, ['hospitales.id', '=', $request->hospital_id]);
         if ($request->servicioId)
             array_push($where, ['servicio.id', '=', $request->servicioId]);
         if ($request->sectorId)
             array_push($where, ['sector.id', '=', $request->sectorId]);
-        if ($request->periodo)
-            array_push($where, ['agenfac.periodo', '=', $request->periodo]);
-        if ($request->anio)
-            array_push($where, ['agenfac.anio', '=', $request->anio]);
 
 
-        $agentes = DB::table("agenfac")
-            ->select(
-                "agenfac.id",
-                "legajo",
-                "incisos.inciso",
-                "nombre",
-                "hospitales.hospital",
-                "servicio.servicio",
-                "sector.sector",
-                'periodo',
-                'anio',
-                "horas",
-                "subtot",
-                "bonvalor",
-                "total"
-            )
-            ->join('agenincs', "agenfac.inc", "=", "agenincs.inciso_id")
+        $agentes = agenfac::select($select)
             ->join('agentes', "agenfac.agente_id", "=", "agentes.id")
             ->join('hospitales', "agenfac.hospital", "=", "hospitales.id")
             ->join('servicio', "servicio.id", "=", "agentes.servicio_id")
             ->join('sector', "agentes.sector_id", "=", "sector.id")
-            ->join('incisos', "agenincs.inciso_id", "=", "incisos.id")
-            ->orWhere($where)
-            ->orderBy('sector.id')
-            ->orderBy('servicio.id')
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+            ->join('incisos', "agenfac.inc", "=", "incisos.id")
+            ->where($where)
+            ->with($with);
 
-        return response()->json($agentes);
+        if ($request->anio) $agentes = $agentes->whereRaw('LOWER(`agenfac`.`anio`) = "' . $request->anio . '"');
+
+        return !is_null($request->periodo) ? $agentes->whereRaw('LOWER(`agenfac`.`periodo`) = "' . $request->periodo . '"') : $agentes;
+    }
+    public function index(Request $request)
+    {
+        return $this->getLiquidacion($request)
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
 
     public function store(Request $request)
@@ -164,5 +169,31 @@ class AgenfacController extends Controller
         $facturacion = agenfac::where($condiciones)->first();
         if (is_null($facturacion)) return response()->json(['message' => 'no se encontro liquidacion'], 422);
         return $facturacion;
+    }
+
+    public function GuardarLiquidacion(Request $request): bool
+    {
+        $agenfacs = $request->all();
+        $liquidaciones = [];
+        foreach ($agenfacs as $liquidacion) {
+            $liquidacion = $this->setBase('created', $liquidacion);
+            array_push($liquidaciones, $liquidacion);
+        };
+        agenfac::insert($liquidaciones);
+        return true;
+    }
+    public function GetLiquidados(Request $request)
+    {
+        $agentes = $this->getLiquidacion($request, ['agente', 'hospitalInfo', 'inciso'])->get();
+        $agentes = $agentes->sortBy([
+            fn ($a, $b) => $a['agente.servicio_id'] <=> $b['agente.servicio_id'],
+            fn ($a, $b) => $b['agente.sector_id'] <=> $a['agente.sector_id'],
+        ]);
+        return $agentes;
+    }
+    public function GetPeriodos(Request $request)
+    {
+        return $this->getLiquidacion($request, [], [$request->columna])->distinct()->get()
+            ->map(fn ($data) => strtolower($data[$request->columna]))->sortDesc()->values()->all();
     }
 }

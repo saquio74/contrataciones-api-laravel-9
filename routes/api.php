@@ -20,6 +20,7 @@ Route::middleware('auth:api')->group(function () {
         function () {
             Route::get('/agentes', 'index');
             Route::get('/agentes/getAgentesLiquidar', 'getAgentesLiquidar');
+            Route::get('/agentes/getLiquidados', 'getLiquidados');
             Route::get('/agentes/getServicios', 'getServicios');
             Route::get('/agentes/getSectores', 'getSectores');
             Route::get('/agentes/{id}', 'AgenteById');
@@ -31,6 +32,9 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(BaseUrl\AgenfacController::class)->group(
         function () {
             Route::post('/agenfac/updateLiquidacion', 'updateAmount');
+            Route::get('/agenfac/getperiodos', 'GetPeriodos');
+            Route::get('/agenfac/getliquidados', 'GetLiquidados');
+            Route::post('/agenfac/guardarLiquidacion', 'GuardarLiquidacion');
             Route::get('/agenfac', 'index');
             Route::post('/agenfac', 'store');
             Route::put('/agenfac', 'update');
