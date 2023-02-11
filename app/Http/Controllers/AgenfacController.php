@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\agenfac;
 use App\Models\incisos;
-use Illuminate\Support\Facades\DB;
+use App\Exports\AgenfacExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AgenfacController extends Controller
 {
@@ -37,6 +39,11 @@ class AgenfacController extends Controller
         "subtot",
         "bonvalor",
         "total"
+    ];
+    private $validationsExport = [
+        "hospital_id" => "required",
+        "periodo" => "required",
+        "anio" => "required"
     ];
     private function getLiquidacion(Request $request, $with = [], $select = null)
     {
@@ -186,14 +193,30 @@ class AgenfacController extends Controller
     {
         $agentes = $this->getLiquidacion($request, ['agente', 'hospitalInfo', 'inciso'])->get();
         $agentes = $agentes->sortBy([
-            fn ($a, $b) => $a['agente.servicio_id'] <=> $b['agente.servicio_id'],
-            fn ($a, $b) => $b['agente.sector_id'] <=> $a['agente.sector_id'],
+            ['agente.servicio', 'asc'], ['agente.sector', 'asc'], ['agente.legajo', 'asc']
+            // fn ($a, $b) => $a['agente.servicio_id'] <=> $b['agente.servicio_id'],
+            // fn ($a, $b) => $b['agente.sector_id'] <=> $a['agente.sector_id'],
+            // fn ($a, $b) => $a['agente.legajo'] <=> $b['agente.legajo'],
         ]);
-        return $agentes;
+        return $agentes->values();
     }
     public function GetPeriodos(Request $request)
     {
         return $this->getLiquidacion($request, [], [$request->columna])->distinct()->get()
             ->map(fn ($data) => strtolower($data[$request->columna]))->sortDesc()->values()->all();
+    }
+
+    public function generarExcel(Request $request)
+    {
+        $request->validate($this->validationsExport);
+        return Excel::download(new AgenfacExport($request), "{$request->hospital_id}_{$request->periodo}_{$request->anio}.xlsx");
+    }
+
+    public function generarPDF(Request $request)
+    {
+        $request->validate($this->validationsExport);
+        $getLiquidados = $this->GetLiquidados($request);
+        $pdf = Pdf::loadView('agenfacPDF', compact('getLiquidados'));
+        return $pdf->download("{$request->hospital}_{$request->periodo}_{$request->anio}.pdf");
     }
 }
