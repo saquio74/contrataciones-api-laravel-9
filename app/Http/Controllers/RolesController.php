@@ -10,7 +10,13 @@ class RolesController extends Controller
     public $validations = [
         "roles" => "required",
     ];
+
     public function index(Request $request)
+    {
+        return $this->getRoles($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+    }
+
+    public function getRoles(Request $request)
     {
         $where = [['roles.deleted_at', '=', null]];
 
@@ -21,76 +27,38 @@ class RolesController extends Controller
         if ($request->id)
             array_push($where, ['roles.id', '=', $request->id]);
 
-        $roles = roles::with('permissionsrole.permissions')->Where($where)
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1)
-            ;
-
-        return response()->json($roles);
+        return roles::with('permissionsrole.permissions')->Where($where);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $this->ValidarModelo($request, $this->validations);
+        $rol = new roles($request->all());
+        $this->setBase('created', $rol);
+        $rol->save();
+
+        return response()->json(["message" => "Guardado correctamente"], 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\roles  $roles
-     * @return \Illuminate\Http\Response
-     */
-    public function show(roles $roles)
+    public function destroy(int $rolId)
     {
-        //
+        $rol = $this->rolById($rolId);
+        if (!$rol)
+            return response()->json(["mensaje" => "no se encontro rol"], 422);
+        $this->setBase('deleted', $rol);
+
+        $rol->save();
+
+        return response()->json(["mensaje" => "rol borrado correctamente"], 201);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\roles  $roles
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(roles $roles)
+    public function rolById(int $id)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\roles  $roles
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, roles $roles)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\roles  $roles
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(roles $roles)
-    {
-        //
+        $condiciones = [
+            ['id', $id],
+            ['deleted_at', '=', null]
+        ];
+        $rol = roles::where($condiciones)->first();
+        return $rol;
     }
 }

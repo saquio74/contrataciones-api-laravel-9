@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers as BaseUrl;
+use App\Http\Middleware\validateHospitalPermmision;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,16 +47,20 @@ Route::middleware('auth:api')->group(function () {
     );
     Route::controller(BaseUrl\ComplementariaController::class)->group(
         function () {
-            Route::get('/complementaria', 'index');
+            Route::get('/complementaria/getperiodos', 'GetPeriodos');
+            Route::get('/complementaria/getPDF', 'GetPDF');
+            Route::get('/complementaria/getLiquidadosComplementaria', 'GetLiquidadosComplementaria');
             Route::get('/complementaria/{id}', 'facturacionById');
             Route::post('/complementaria', 'store');
+            Route::post('/complementaria/guardarLiquidacion', 'GuardarLiquidacion');
             Route::put('/complementaria', 'update');
             Route::delete('/complementaria/{id}', 'destroy');
+            Route::get('/complementaria', 'index');
         }
     );
     Route::controller(BaseUrl\HospitalesController::class)->group(
         function () {
-            Route::get('/hospitales', 'index');
+            Route::get('/hospitales', 'index')->middleware(validateHospitalPermmision::class);
             Route::get('/hospitales/{id}', 'hospitalByIdResponse');
             Route::post('/hospitales', 'store');
             Route::put('/hospitales', 'update');

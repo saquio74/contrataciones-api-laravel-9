@@ -2,7 +2,8 @@
 <html>
 
 <head>
-    <title>Laravel 9 Generate PDF From View</title>
+    <title>{{ "{$getLiquidados->first()->hospitalInfo->hospital}" }} M.T
+        {{ "{$getLiquidados->first()->periodo} {$getLiquidados->first()->anio}" }}</title>
     <link href="css/app.css" type="text/css" rel="stylesheet" />
 </head>
 
@@ -83,7 +84,7 @@
                         {{ $liquidacion->horas }}
                     </td>
                     <td class="alinear-derecha">
-                        ${{ number_format($liquidacion->subtot, 2, ',', '.') }}
+                        ${{ number_format($liquidacion->subtot ?? $liquidacion->subtotal, 2, ',', '.') }}
                     </td>
                     <td>
                         {{ $liquidacion->bonificacion }}
@@ -107,7 +108,7 @@
                     <br>
                     Subtotal del sector:
                     $
-                    {{ number_format($getLiquidados->where('sector', $liquidacion->sector)->reduce(fn($v1, $v2) => $v1 + $v2->subtot), 2, ',', '.') }}
+                    {{ number_format($getLiquidados->where('sector', $liquidacion->sector)->reduce(fn($v1, $v2) => $v1 + ($v2->subtot ?? $v2->subtotal)), 2, ',', '.') }}
                     <br>
                     Bonificacion total del sector:
                     $
@@ -130,7 +131,7 @@
                     <br>
                     Subtotal del servicio:
                     $
-                    {{ number_format($getLiquidados->where('servicio', $liquidacion->servicio)->reduce(fn($v1, $v2) => $v1 + $v2->subtot), 2, ',', '.') }}
+                    {{ number_format($getLiquidados->where('servicio', $liquidacion->servicio)->reduce(fn($v1, $v2) => $v1 + ($v2->subtot ?? $v2->subtotal)), 2, ',', '.') }}
                     <br>
                     Bonificacion total del servicio:
                     $
@@ -149,7 +150,7 @@
                     <br>
                     Subtotal del sector:
                     $
-                    {{ number_format($getLiquidados->where('sector', $liquidacion->sector)->reduce(fn($v1, $v2) => $v1 + $v2->subtot), 2, ',', '.') }}
+                    {{ number_format($getLiquidados->where('sector', $liquidacion->sector)->reduce(fn($v1, $v2) => $v1 + ($v2->subtot ?? $v2->subtotal)), 2, ',', '.') }}
                     <br>
                     Bonificacion total del sector:
                     $
@@ -166,7 +167,7 @@
                     <br>
                     Subtotal del servicio:
                     $
-                    {{ number_format($getLiquidados->where('servicio', $liquidacion->servicio)->reduce(fn($v1, $v2) => $v1 + $v2->subtot), 2, ',', '.') }}
+                    {{ number_format($getLiquidados->where('servicio', $liquidacion->servicio)->reduce(fn($v1, $v2) => $v1 + ($v2->subtot ?? $v2->subtotal)), 2, ',', '.') }}
                     <br>
                     Bonificacion total del servicio:
                     $
@@ -182,7 +183,7 @@
                     <br>
                     Subtotal del hospital:
                     $
-                    {{ number_format($getLiquidados->reduce(fn($v1, $v2) => $v1 + $v2->subtot), 2, ',', '.') }}
+                    {{ number_format($getLiquidados->reduce(fn($v1, $v2) => $v1 + ($v2->subtot ?? $v2->subtotal)), 2, ',', '.') }}
                     <br>
                     Bonificacion total del hospital:
                     $
@@ -197,6 +198,7 @@
         </div>
 
     </div>
+
 </body>
 
 </html>

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\hospitales;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class HospitalesController extends Controller
@@ -16,14 +15,12 @@ class HospitalesController extends Controller
         $where = [['hospitales.deleted_at', '=', null]];
         if ($request->hospital)
             array_push($where, ['hospitales.hospital', 'like', "%$request->hospital%"]);
-        if ($request->id)
-            array_push($where, ['hospitales.id', '=', $request->id]);
+        $hospitales = hospitales::Where($where)
+            ->orderBy('hospitales.hospital');
 
-        $agentes = hospitales::Where($where)
-            ->orderBy('hospitales.hospital')
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+        if ($request->id) $hospitales->whereIn('hospitales.id', json_decode($request->id));
 
-        return response()->json($agentes);
+        return $hospitales->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
 
     public function store(Request $request)

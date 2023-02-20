@@ -16,11 +16,16 @@ header {
 }
 footer {
     position: fixed;
-    bottom: -60px;
+    bottom: -30px;
     left: 0px;
     right: 0px;
-    background-color: lightblue;
-    height: 50px;
+    height: 20px;
+}
+footer .page:after {
+    content: counter(page, decimal);
+}
+footer .pagenum:before {
+    content: counter(page);
 }
 p {
     page-break-after: always;

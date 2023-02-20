@@ -12,6 +12,10 @@ class PermissionsController extends Controller
     ];
     public function index(Request $request)
     {
+        return $this->getPermissions($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+    }
+    public function getPermissions(Request $request)
+    {
         $where = [['permissions.deleted_at', '=', null]];
 
         if ($request->search) {
@@ -21,10 +25,7 @@ class PermissionsController extends Controller
         }
         if ($request->id) array_push($where, ['permissions.id', '=', $request->id]);
 
-        $permissions = permissions::Where($where)
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
-
-        return response()->json($permissions);
+        return permissions::Where($where);
     }
 
 
@@ -43,7 +44,9 @@ class PermissionsController extends Controller
         $this->ValidarModelo($request, $this->validations, true);
         $permissions = permissions::find($request->id);
         $this->setBase('updated', $permissions);
-        $permissions->permissions = $request->permissions;
+        $permissions->slug = $request->slug;
+        $permissions->name = $request->name;
+        $permissions->description = $request->description;
         $permissions->save();
 
         return response()->json(["message" => "Guardado correctamente"], 201);
@@ -61,6 +64,6 @@ class PermissionsController extends Controller
     }
     public function permissionsById(int $id)
     {
-        return $this->findById(new permissions,$id);
+        return $this->findById(new permissions, $id);
     }
 }

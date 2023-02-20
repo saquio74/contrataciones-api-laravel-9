@@ -7,7 +7,8 @@ use App\Models\incisos;
 use App\Exports\AgenfacExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Exceptions;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AgenfacController extends Controller
 {
@@ -194,9 +195,6 @@ class AgenfacController extends Controller
         $agentes = $this->getLiquidacion($request, ['agente', 'hospitalInfo', 'inciso'])->get();
         $agentes = $agentes->sortBy([
             ['agente.servicio', 'asc'], ['agente.sector', 'asc'], ['agente.legajo', 'asc']
-            // fn ($a, $b) => $a['agente.servicio_id'] <=> $b['agente.servicio_id'],
-            // fn ($a, $b) => $b['agente.sector_id'] <=> $a['agente.sector_id'],
-            // fn ($a, $b) => $a['agente.legajo'] <=> $b['agente.legajo'],
         ]);
         return $agentes->values();
     }
@@ -216,7 +214,8 @@ class AgenfacController extends Controller
     {
         $request->validate($this->validationsExport);
         $getLiquidados = $this->GetLiquidados($request);
-        $pdf = Pdf::loadView('agenfacPDF', compact('getLiquidados'));
-        return $pdf->download("{$request->hospital}_{$request->periodo}_{$request->anio}.pdf");
+        if ($getLiquidados->count() > 0)
+            return $this->createPdf($getLiquidados);
+        abort(400, "Sin resultados");
     }
 }

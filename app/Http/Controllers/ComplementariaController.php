@@ -26,8 +26,34 @@ class ComplementariaController extends Controller
         "bonificacion" => "required"
 
     ];
-    public function index(Request $request)
+    private $select = [
+        "complementaria.id",
+        "legajo",
+        "incisos.inciso",
+        "inciso_id",
+        "agente_id",
+        "nombre",
+        "fecha",
+        "hospitales.hospital",
+        "servicio.servicio",
+        "sector.sector",
+        'periodo',
+        'complementaria.hospital_id',
+        'complementaria.valor',
+        'bonificacion',
+        'anio',
+        "horas",
+        "subtotal",
+        "bonvalor",
+        "total"
+    ];
+    private $validationsExport = [
+        "hospital_id" => "required",
+        "fecha" => "required"
+    ];
+    private function getComplementaria(Request $request, $with = [], $select = null)
     {
+        $select ??= $this->select;
         $where = [['complementaria.deleted_at', '=', null]];
         if ($request->nombre)
             array_push($where, ['agentes.nombre', 'like', "%$request->nombre%"]);
@@ -37,51 +63,36 @@ class ComplementariaController extends Controller
             array_push($where, ['servicio.servicio', 'like', "%$request->servicio%"]);
         if ($request->sector)
             array_push($where, ['sector.sector', 'like', "%$request->sector%"]);
-        if ($request->hospitalId)
-            array_push($where, ['hospitales.id', '=', $request->hospitalId]);
+        if ($request->fecha)
+            array_push($where, ['fecha', 'like', "%$request->fecha%"]);
+        if ($request->hospital_id)
+            array_push($where, ['hospitales.id', '=', $request->hospital_id]);
         if ($request->servicioId)
             array_push($where, ['servicio.id', '=', $request->servicioId]);
         if ($request->sectorId)
             array_push($where, ['sector.id', '=', $request->sectorId]);
-        if ($request->periodo)
-            array_push($where, ['complementaria.periodo', '=', $request->periodo]);
-        if ($request->anio)
-            array_push($where, ['complementaria.anio', '=', $request->anio]);
 
 
-        $agentes = DB::table("complementaria")
-            ->select("complementaria.id", "legajo", "incisos.inciso", "nombre", "hospitales.hospital", "servicio.servicio", "sector.sector", 'periodo', 'anio', "horas", "subtotal", "bonvalor", "total")
-            ->join('agenincs', "complementaria.inciso_id", "=", "agenincs.inciso_id")
+        $agentes = complementaria::select($select)
             ->join('agentes', "complementaria.agente_id", "=", "agentes.id")
             ->join('hospitales', "complementaria.hospital_id", "=", "hospitales.id")
             ->join('servicio', "servicio.id", "=", "agentes.servicio_id")
             ->join('sector', "agentes.sector_id", "=", "sector.id")
-            ->join('incisos', "agenincs.inciso_id", "=", "incisos.id")
-            ->orWhere($where)
-            ->orderBy('sector.id')
-            ->orderBy('servicio.id')
-            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+            ->join('incisos', "complementaria.inciso_id", "=", "incisos.id")
+            ->where($where)
+            ->with($with);
 
-        return response()->json($agentes);
+        if ($request->anio) $agentes = $agentes->whereRaw('LOWER(`complementaria`.`anio`) = "' . $request->anio . '"');
+
+        return !is_null($request->periodo) ? $agentes->whereRaw('LOWER(`complementaria`.`periodo`) = "' . $request->periodo . '"') : $agentes;
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function index(Request $request)
     {
-        //
+        return $this->getComplementaria($request)
+            ->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): complementaria
     {
         $this->ValidarModelo($request, $this->validations);
         $liquidacion = new complementaria($request->all());
@@ -91,7 +102,7 @@ class ComplementariaController extends Controller
 
         $liquidacion->save();
 
-        return response()->json($liquidacion, 200);
+        return $liquidacion;
     }
 
     public function update(Request $request)
@@ -134,8 +145,8 @@ class ComplementariaController extends Controller
         $liquidacion->subtotal = number_format($liquidacion->horas * $inciso->valor, 2, '.', '');
         $liquidacion->bonvalor = number_format($liquidacion->subtotal * $liquidacion->bonificacion / 100, 2, '.', '');
         $liquidacion->total = $liquidacion->subtotal + $liquidacion->bonvalor;
-
     }
+
     public function facturacionById(int $id)
     {
         $condiciones = [
@@ -144,5 +155,37 @@ class ComplementariaController extends Controller
         ];
         $facturacion = complementaria::where($condiciones)->first();
         return $facturacion;
+    }
+
+    public function GetPeriodos(Request $request)
+    {
+        return $this->getComplementaria($request, ['agente', 'hospitalInfo', 'inciso'], [$request->columna])->orderByDesc("complementaria.id")->distinct()->get()
+            ->map(fn ($data) => strtolower($data[$request->columna]));
+    }
+
+    public function GetLiquidadosComplementaria(Request $request)
+    {
+        $request->validate($this->validationsExport);
+        $agentes = $this->getComplementaria($request, ['agente', 'hospitalInfo', 'inciso'])->get();
+        $agentes = $agentes->sortBy([
+            ['agente.servicio', 'asc'], ['agente.sector', 'asc'], ['agente.legajo', 'asc']
+        ]);
+        return $agentes->values();
+    }
+
+    public function GuardarLiquidacion(Request $request): bool
+    {
+        $agenfacs = $request->all();
+        $liquidaciones = [];
+        foreach ($agenfacs as $liquidacion) {
+            $liquidacion = $this->setBase('created', $liquidacion);
+            array_push($liquidaciones, $liquidacion);
+        };
+        complementaria::insert($liquidaciones);
+        return true;
+    }
+    public function GetPDF(Request $request)
+    {
+        return $this->createPdf($this->GetLiquidadosComplementaria($request));
     }
 }

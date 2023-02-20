@@ -17,7 +17,7 @@ class complementaria extends Model
         'inciso_id',
         'valor',
         'bonificacion',
-        'subtot',
+        'subtotal',
         'bonvalor',
         'total',
         'hospital_id',
@@ -28,4 +28,16 @@ class complementaria extends Model
         'updated_by',
         'deleted_by',
     ];
+    public function hospitalInfo()
+    {
+        return $this->belongsTo(hospitales::class, 'hospital_id');
+    }
+    public function agente()
+    {
+        return $this->belongsTo(agentes::class, 'agente_id');
+    }
+    public function inciso()
+    {
+        return $this->belongsTo(incisos::class, 'inciso_id', 'id');
+    }
 }
