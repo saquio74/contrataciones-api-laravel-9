@@ -16,7 +16,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:api')->group(function () {
-    Route::get('/user', [BaseUrl\BaseControllers\AuthController::class, 'GetUser']);
+    // Route::get('/user', [BaseUrl\BaseControllers\AuthController::class, 'GetUser']);
+    Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
+        Route::get('/users/currentUser', 'GetUser');
+        Route::get('/users', 'GetUser');
+        Route::get('/users', 'GetUsers');
+        Route::delete('/users/{id}', 'Delete');
+        Route::put('/users', 'UpdateUser');
+    });
     Route::controller(BaseUrl\AgentesController::class)->group(
         function () {
             Route::get('/agentes', 'index');
@@ -110,10 +117,20 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/roles', 'store');
             Route::put('/roles', 'update');
             Route::delete('/roles/{id}', 'destroy');
+            Route::put('/roles/user', 'updateRolUser');
+        }
+    );
+    Route::controller(BaseUrl\PermissionsController::class)->group(
+        function () {
+            Route::get('/permissions', 'index');
+            Route::get('/permissions/{id}', 'permissionsById');
+            Route::post('/permissions', 'store');
+            Route::put('/permissions', 'update');
+            Route::delete('/permissions/{id}', 'destroy');
         }
     );
 });
 Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
-    Route::post('/user/register', 'Register');
-    Route::post('/user/login', 'login');
+    Route::post('/users/register', 'Register');
+    Route::post('/users/login', 'login');
 });

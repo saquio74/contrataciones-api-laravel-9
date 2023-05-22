@@ -25,11 +25,13 @@ class AuthController extends Controller
             "user" => $user
         ]);
     }
+
     public function GetUser()
     {
         $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
         return response()->json($user, 200);
     }
+
     public function login(Request $request)
     {
         $data = $request->validate([
@@ -43,5 +45,39 @@ class AuthController extends Controller
         $user->token = $user->createToken('authToken')->accessToken;
 
         return response()->json($user, 200);
+    }
+
+    public function GetUsers(Request $request)
+    {
+        $where = [['users.deleted_at', '=', null]];
+
+        if ($request->rol)
+            array_push($where, ['users.name', 'like', "%$request->name%"]);
+        if ($request->description)
+            array_push($where, ['users.email', 'like', "%$request->email%"]);
+        if ($request->id)
+            array_push($where, ['users.role_id', '=', $request->rol_id]);
+
+        return User::with('roles.permissionsrole.permissions')->Where($where)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);;
+    }
+    public function Delete(int $userId)
+    {
+        $user = $this->GetById($userId);
+        $this->setBase('deleted', $user);
+        $user->save();
+    }
+    private function GetById(int $userId)
+    {
+        return User::find($userId);
+    }
+    public function UpdateUser(Request $request)
+    {
+        $request->validate(["id" => "required"]);
+        $user = $this->GetById($request->id);
+        $user->name = $request->name ? $request->name : $user->name;
+        $user->email = $request->email ? $request->email : $user->email;
+        $user->role_id = $request->role_id ? $request->role_id : $user->role_id;
+        $user->save();
+        return $user;
     }
 }

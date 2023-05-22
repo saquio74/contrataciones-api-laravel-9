@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models;
+
 class roles extends Model
 {
     use HasFactory;
@@ -21,10 +22,12 @@ class roles extends Model
         'updated_by',
         'deleted_by',
     ];
-    public function user(){
+    public function user()
+    {
         return $this->hasMany(Models\User::class, 'role_id', 'id');
     }
-    public function permissionsrole(){
-        return $this->hasMany(Models\permissionsrole::class,'roles_id','id'); 
+    public function permissionsrole()
+    {
+        return $this->hasMany(Models\permissionsrole::class, 'roles_id', 'id');
     }
 }

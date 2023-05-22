@@ -18,14 +18,15 @@ class PermissionsController extends Controller
     {
         $where = [['permissions.deleted_at', '=', null]];
 
-        if ($request->search) {
+        if ($request->slug)
             array_push($where, ['permissions.slug', 'like', "%$request->slug%"]);
+        if ($request->name)
             array_push($where, ['permissions.name', 'like', "%$request->name%"]);
-            array_push($where, ['permissions.descripcion', 'like', "%$request->descripcion%"]);
-        }
+        if ($request->description)
+            array_push($where, ['permissions.description', 'like', "%$request->description%"]);
         if ($request->id) array_push($where, ['permissions.id', '=', $request->id]);
 
-        return permissions::Where($where);
+        return permissions::with("permissionsrole.roles")->Where($where);
     }
 
 
