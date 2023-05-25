@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -79,5 +80,9 @@ class AuthController extends Controller
         $user->role_id = $request->role_id ? $request->role_id : $user->role_id;
         $user->save();
         return $user;
+    }
+    public function Logout(Request $request)
+    {
+        $request->user()->token()->revoke();
     }
 }

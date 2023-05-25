@@ -23,6 +23,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/users', 'GetUsers');
         Route::delete('/users/{id}', 'Delete');
         Route::put('/users', 'UpdateUser');
+        Route::post('/users/logout', 'Logout');
     });
     Route::controller(BaseUrl\AgentesController::class)->group(
         function () {
