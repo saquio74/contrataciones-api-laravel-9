@@ -159,8 +159,8 @@ class ComplementariaController extends Controller
 
     public function GetPeriodos(Request $request)
     {
-        $info = $this->getComplementaria($request, ['agente', 'hospitalInfo', 'inciso'], [$request->columna, 'complementaria.id'])->orderByDesc("complementaria.id")->distinct()->get();
-        return $info->map(fn ($data) => strtolower($data[$request->columna]));
+        return $this->getComplementaria($request, ['agente', 'hospitalInfo', 'inciso'], [$request->columna, 'complementaria.id'])->orderByDesc("complementaria.id")
+            ->distinct()->get()->map(fn ($data) => strtolower($data[$request->columna]));
     }
 
     public function GetLiquidadosComplementaria(Request $request)
