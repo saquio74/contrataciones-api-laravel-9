@@ -37,7 +37,7 @@ class AgentesController extends Controller
             ->join('hospitales', 'hospitales.id', '=', 'agentes.hospital_id')
             ->join('servicio', 'servicio.id', '=', 'agentes.servicio_id')
             ->join('sector', 'sector.id', '=', 'agentes.sector_id')
-            ->join('agenfac', 'agenfac.agente_id', '=', 'agentes.id')
+            ->leftjoin('agenfac', 'agenfac.agente_id', '=', 'agentes.id')
             ->distinct();
         if ($orderBy) $agente->orderBy($orderBy);
         return $agente;
@@ -97,7 +97,7 @@ class AgentesController extends Controller
 
         $agente = new agentes($request->all());
 
-        $this->setBase('created', $agente);
+        $agente = $this->setBase('created', $agente);
         $agente->activo = true;
         $agente->save();
 
