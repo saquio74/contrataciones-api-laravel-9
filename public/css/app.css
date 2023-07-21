@@ -3,7 +3,7 @@
 }
 header {
     position: fixed;
-    top: -60px;
+    top: 0px;
     left: 0px;
     right: 0px;
     height: 50px;
@@ -46,8 +46,8 @@ body {
 table,
 th,
 td {
-    border: 1px solid black;
-    border-collapse: collapse;
+    /* border: 1px solid black; */
+    /* border-collapse: collapse; */
     text-align: left;
     font-size: 14px;
     padding: 5px;

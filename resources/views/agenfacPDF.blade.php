@@ -5,12 +5,14 @@
     <title>{{ "{$getLiquidados->first()->hospitalInfo->hospital}" }} M.T
         {{ "{$getLiquidados->first()->periodo} {$getLiquidados->first()->anio}" }}</title>
     <link href="css/app.css" type="text/css" rel="stylesheet" />
+    <style>
+
+    </style>
 </head>
 
 <body>
     <header>
         <div class="header">
-            <img src="img/logoMalvinas.png" alt="" srcset="" />
             <h1 class="title">
 
                 Municipalidad de Malvinas Argentinas
