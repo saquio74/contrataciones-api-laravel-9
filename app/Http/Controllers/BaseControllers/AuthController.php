@@ -85,4 +85,17 @@ class AuthController extends Controller
     {
         $request->user()->token()->revoke();
     }
+    public function ChangePassword(Request $request)
+    {
+        $currentUser = $this->GetById(Auth()->user()->id);
+
+        $request->validate(["password" => "required|confirmed"]);
+
+        if (!Hash::check($request->oldPassword, $currentUser->password)) {
+            return response()->json(['La contraseña vieja no es correcta'], 422);
+        }
+        $currentUser->password = Hash::make($request->password);
+        $currentUser->save();
+        return response()->json(['Contraseña actualizada'], 200);
+    }
 }

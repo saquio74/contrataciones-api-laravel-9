@@ -21,6 +21,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/users/currentUser', 'GetUser');
         Route::get('/users', 'GetUser');
         Route::get('/users', 'GetUsers');
+        Route::patch('/users/updatePassword', 'ChangePassword');
         Route::delete('/users/{id}', 'Delete');
         Route::put('/users', 'UpdateUser');
         Route::post('/users/logout', 'Logout');
