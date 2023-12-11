@@ -7,8 +7,6 @@ use App\Models\incisos;
 use App\Exports\AgenfacExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Illuminate\Http\Exceptions;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AgenfacController extends Controller
 {

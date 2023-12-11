@@ -19,7 +19,7 @@ Route::middleware('auth:api')->group(function () {
     // Route::get('/user', [BaseUrl\BaseControllers\AuthController::class, 'GetUser']);
     Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
         Route::get('/users/currentUser', 'GetUser');
-        Route::get('/users', 'GetUser');
+        Route::get('/users/{id}', 'GetUser');
         Route::get('/users', 'GetUsers');
         Route::patch('/users/updatePassword', 'ChangePassword');
         Route::delete('/users/{id}', 'Delete');
@@ -129,6 +129,11 @@ Route::middleware('auth:api')->group(function () {
             Route::post('/permissions', 'store');
             Route::put('/permissions', 'update');
             Route::delete('/permissions/{id}', 'destroy');
+        }
+    );
+    Route::controller(BaseUrl\ProveedorsController::class)->group(
+        function () {
+            Route::get('/proveedores', 'GetPaginateResponse');
         }
     );
 });

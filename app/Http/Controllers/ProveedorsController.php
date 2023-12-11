@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\proveedors;
 use Illuminate\Http\Request;
 
-class ProveedorsController extends Controller
+class ProveedorsController extends BaseController
 {
+
+    public function __construct()
+    {
+        $this->entity = new proveedors();
+    }
     /**
      * Display a listing of the resource.
      *
@@ -81,5 +87,17 @@ class ProveedorsController extends Controller
     public function destroy(proveedors $proveedors)
     {
         //
+    }
+    public function validateData(Request $request, $entity)
+    {
+        $where = [];
+        if ($request->nombre) $entity->whereRaw('LOWER(TRIM(`proveedors`.`nombre`)) like "%' . $request->nombre . '%"');
+        if ($request->dni) array_push($where, ['proveedors.dni', 'like', "%$request->dni%"]);
+
+        return $entity->where($where);
+    }
+
+    public function addIncludes()
+    {
     }
 }
