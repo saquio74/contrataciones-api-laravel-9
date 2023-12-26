@@ -134,6 +134,10 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(BaseUrl\ProveedorsController::class)->group(
         function () {
             Route::get('/proveedores', 'GetPaginateResponse');
+            Route::get('/proveedores/{id}', 'GetById');
+            Route::post('/proveedores', 'Create');
+            Route::put('/proveedores', 'Update');
+            Route::delete('/proveedores/{id}', 'Destroy');
         }
     );
 });

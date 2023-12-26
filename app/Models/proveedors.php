@@ -22,4 +22,8 @@ class proveedors extends Model
         'updated_by',
         'deleted_by',
     ];
+    public function provhops()
+    {
+        return $this->hasMany(provhosps::class, 'proveedor_id', 'id');
+    }
 }

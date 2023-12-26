@@ -6,6 +6,8 @@ use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\proveedors;
 use Illuminate\Http\Request;
 
+use function PHPUnit\Framework\isNull;
+
 class ProveedorsController extends BaseController
 {
 
@@ -13,85 +15,21 @@ class ProveedorsController extends BaseController
     {
         $this->entity = new proveedors();
     }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+    private $validations = [
+        "cuil" => "required",
+        "proveedor" => "required",
+        "nombre" => "required",
+        "apellido" => "required",
+        "dni" => "required",
+        "genero" => "required"
+    ];
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\proveedors  $proveedors
-     * @return \Illuminate\Http\Response
-     */
-    public function show(proveedors $proveedors)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\proveedors  $proveedors
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(proveedors $proveedors)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\proveedors  $proveedors
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, proveedors $proveedors)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\proveedors  $proveedors
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(proveedors $proveedors)
-    {
-        //
-    }
     public function validateData(Request $request, $entity)
     {
         $where = [];
-        if ($request->nombre) $entity->whereRaw('LOWER(TRIM(`proveedors`.`nombre`)) like "%' . $request->nombre . '%"');
+        if ($request->nombre)
+            $entity->whereRaw('LOWER(CONCAT(TRIM(`proveedors`.`nombre`)," ",TRIM(`proveedors`.`apellido`))) like "%' . strtolower($request->nombre) . '%"')
+                ->orWhereRaw('LOWER(CONCAT(TRIM(`proveedors`.`apellido`)," ",TRIM(`proveedors`.`nombre`))) like "%' . strtolower($request->nombre) . '%"');
         if ($request->dni) array_push($where, ['proveedors.dni', 'like', "%$request->dni%"]);
 
         return $entity->where($where);
@@ -99,5 +37,27 @@ class ProveedorsController extends BaseController
 
     public function addIncludes()
     {
+        return $this->entity->with("provhops.hospital");
+    }
+
+    public function toEntity(Request $request)
+    {
+        // dd($this->validations);
+        $crear = isNull($request->id) || $request->id == 0;
+
+        if ($crear) $this->validations["cuil"] = "required|unique:proveedors";
+
+        dd($this->validations, $crear);
+        $request->validate($this->validations);
+
+        $proveedor = $crear  ? new proveedors() : $this->GetById($request->id);
+
+        $proveedor->proveedor = $request->proveedor;
+        $proveedor->nombre = $request->nombre;
+        $proveedor->apellido = $request->apellido;
+        $proveedor->dni = $request->dni;
+        $proveedor->cuil = $request->cuil;
+        $proveedor->genero = $request->genero;
+        return $proveedor;
     }
 }

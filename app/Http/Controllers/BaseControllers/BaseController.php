@@ -15,7 +15,7 @@ abstract class BaseController extends Controller
     /**
      * @var T of Model
      */
-    public $entity;
+    protected $entity;
 
     /**
      * @param T $entity of Model
@@ -28,10 +28,8 @@ abstract class BaseController extends Controller
 
     public function getAll()
     {
-
-        $this->addIncludes();
         $className = class_basename($this->entity);
-        return $this->entity->where($className . '.deleted_at', '=', null);
+        return $this->addIncludes($this->entity)->where($className . '.deleted_at', '=', null);
     }
 
     public function GetFiltered(Request $request)
@@ -43,4 +41,47 @@ abstract class BaseController extends Controller
     {
         return $this->GetFiltered($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
+
+    /**
+     * @param int $id
+     * @return T of Model
+     */
+    public function GetById(int $id)
+    {
+        return $this->getAll()->where(class_basename($this->entity) . '.id', '=', $id)->first();
+    }
+
+
+    /**
+     * @return T of Model
+     */
+    public function Create(Request $request)
+    {
+        $entity = $this->toEntity($request);
+        $entity = $this->setBase('created', $entity);
+        $entity->save();
+        return $entity;
+    }
+    /**
+     * @return T of Model
+     */
+    public function Update(Request $request)
+    {
+        $entity = $this->toEntity($request);
+        $entity = $this->setBase('updated', $entity);
+        $entity->save();
+        return $entity;
+    }
+
+    public function Destroy(int $id): void
+    {
+        $entity = $this->GetById($id);
+        $entity = $this->setBase('deleted', $entity);
+        $entity->save();
+    }
+
+    /**
+     * @return T of Model
+     */
+    public abstract function toEntity(Request $request);
 }
