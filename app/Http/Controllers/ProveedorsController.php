@@ -28,8 +28,9 @@ class ProveedorsController extends BaseController
     {
         $where = [];
         if ($request->nombre)
-            $entity->whereRaw('LOWER(CONCAT(TRIM(`proveedors`.`nombre`)," ",TRIM(`proveedors`.`apellido`))) like "%' . strtolower($request->nombre) . '%"')
-                ->orWhereRaw('LOWER(CONCAT(TRIM(`proveedors`.`apellido`)," ",TRIM(`proveedors`.`nombre`))) like "%' . strtolower($request->nombre) . '%"');
+            // $entity->where();
+            $entity->whereRaw('(LOWER(CONCAT(TRIM(`proveedors`.`nombre`)," ",TRIM(`proveedors`.`apellido`))) like "%' . strtolower($request->nombre) . '%" or
+                                LOWER(CONCAT(TRIM(`proveedors`.`apellido`)," ",TRIM(`proveedors`.`nombre`))) like "%' . strtolower($request->nombre) . '%")');
         if ($request->dni) array_push($where, ['proveedors.dni', 'like', "%$request->dni%"]);
 
         return $entity->where($where);
@@ -43,11 +44,10 @@ class ProveedorsController extends BaseController
     public function toEntity(Request $request)
     {
         // dd($this->validations);
-        $crear = isNull($request->id) || $request->id == 0;
+        $crear = $request->id == null || $request->id == 0;
 
         if ($crear) $this->validations["cuil"] = "required|unique:proveedors";
 
-        dd($this->validations, $crear);
         $request->validate($this->validations);
 
         $proveedor = $crear  ? new proveedors() : $this->GetById($request->id);

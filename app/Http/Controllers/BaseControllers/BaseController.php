@@ -48,7 +48,7 @@ abstract class BaseController extends Controller
      */
     public function GetById(int $id)
     {
-        return $this->getAll()->where(class_basename($this->entity) . '.id', '=', $id)->first();
+        return $this->getAll()->where(class_basename($this->entity) . '.id', '=', $id)->firstOrFail();
     }
 
 
