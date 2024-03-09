@@ -4,7 +4,6 @@ namespace App\Http\Controllers\BaseControllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models;
 
 /**
  * @template T of Entity
@@ -23,6 +22,9 @@ abstract class BaseController extends Controller
      */
     public abstract function validateData(Request $request, $entity);
 
+    /**
+     * @return T of Model
+     */
     public abstract function addIncludes();
 
 

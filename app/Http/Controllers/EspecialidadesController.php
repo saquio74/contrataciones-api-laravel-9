@@ -2,84 +2,40 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\especialidades;
 use Illuminate\Http\Request;
 
-class EspecialidadesController extends Controller
+class EspecialidadesController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $validations = [
+        "especialidad" => "required",
+        "grado" => "required"
+    ];
+
+    public function __construct()
     {
-        //
+        $this->entity = new especialidades();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function toEntity(Request $request)
     {
-        //
-    }
+        $crear = $request->id == null;
+        if ($crear) $this->validations["especialidad"] = "required|unique:especialidades";
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $request->validate($this->validations);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\especialidades  $especialidades
-     * @return \Illuminate\Http\Response
-     */
-    public function show(especialidades $especialidades)
-    {
-        //
+        $especialidad = $crear  ? new especialidades() : $this->GetById($request->id);
+        $especialidad->grado = $request->grado;
+        $especialidad->especialidad = $request->especialidad;
+        return $especialidad;
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\especialidades  $especialidades
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(especialidades $especialidades)
+    public function validateData(Request $request, $entity)
     {
-        //
+        return $entity;
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\especialidades  $especialidades
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, especialidades $especialidades)
+    public function addIncludes()
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\especialidades  $especialidades
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(especialidades $especialidades)
-    {
-        //
+        return $this->entity;
     }
 }

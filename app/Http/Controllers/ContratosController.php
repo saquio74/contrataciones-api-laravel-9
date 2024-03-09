@@ -2,84 +2,49 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\contratos;
+use App\Models\proveedors;
 use Illuminate\Http\Request;
 
-class ContratosController extends Controller
+class ContratosController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public $validations = [
+        "proveedor_id" => "required",
+        "especialidad_id" => "required",
+        "contrato" => "required",
+        "fecha_inicio" => "required|date",
+        "fecha_fin" => "required|date"
+    ];
+
+    public function __construct()
     {
-        //
+        $this->entity = new contratos();
+    }
+    public function validateData($request, $entity)
+    {
+        return $entity;
+    }
+    public function addIncludes()
+    {
+        return $this->entity;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function toEntity(Request $request)
     {
-        //
-    }
+        $crear = $request->id == null;
+        $request->validate($this->validations);
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        $contrato = $crear  ? new contratos() : $this->GetById($request->id);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\contratos  $contratos
-     * @return \Illuminate\Http\Response
-     */
-    public function show(contratos $contratos)
-    {
-        //
-    }
+        $proveedores = new proveedors();
+        $proveedores::where([['id', '=', $request->proveedor_id], ['deleted_at', '=', null]])->firstOrFail();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\contratos  $contratos
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(contratos $contratos)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\contratos  $contratos
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, contratos $contratos)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\contratos  $contratos
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(contratos $contratos)
-    {
-        //
+        $contrato->proveedor_id = $request->proveedor_id;
+        $contrato->especialidad_id = $request->especialidad_id;
+        $contrato->contrato = $request->contrato;
+        $contrato->fecha_inicio = $request->fecha_inicio;
+        $contrato->fecha_fin = $request->fecha_fin;
+        return $contrato;
     }
 }

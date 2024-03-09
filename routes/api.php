@@ -140,6 +140,33 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/proveedores/{id}', 'Destroy');
         }
     );
+    Route::controller(BaseUrl\EspecialidadesController::class)->group(
+        function () {
+            Route::get('/especialidades', 'GetPaginateResponse');
+            Route::get('/especialidades/{id}', 'GetById');
+            Route::post('/especialidades', 'Create');
+            Route::put('/especialidades', 'Update');
+            Route::delete('/especialidades/{id}', 'Destroy');
+        }
+    );
+    Route::controller(BaseUrl\ContratosController::class)->group(
+        function () {
+            Route::get('/contratos', 'GetPaginateResponse');
+            Route::get('/contratos/{id}', 'GetById');
+            Route::post('/contratos', 'Create');
+            Route::put('/contratos', 'Update');
+            Route::delete('/contratos/{id}', 'Destroy');
+        }
+    );
+    Route::controller(BaseUrl\PrestacionController::class)->group(
+        function () {
+            Route::get('/prestacion', 'GetPaginateResponse');
+            Route::get('/prestacion/{id}', 'GetById');
+            Route::post('/prestacion', 'Create');
+            Route::put('/prestacion', 'Update');
+            Route::delete('/prestacion/{id}', 'Destroy');
+        }
+    );
 });
 Route::controller(BaseUrl\BaseControllers\AuthController::class)->group(function () {
     Route::post('/users/register', 'Register');

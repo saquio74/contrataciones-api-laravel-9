@@ -2,84 +2,56 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\prestacion;
 use Illuminate\Http\Request;
 
-class PrestacionController extends Controller
+class PrestacionController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
+    public $validations = [
+        "nombre" => "required",
+        "valor" => "required",
+        "especialidad_id" => "required",
+        "vigente_desde" => "required|date"
+    ];
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function __construct()
     {
-        //
+        $this->entity = new prestacion();
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function addIncludes()
     {
-        //
+        return $this->entity;
     }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\prestacion  $prestacion
-     * @return \Illuminate\Http\Response
-     */
-    public function show(prestacion $prestacion)
+    public function validateData(Request $request, $entity)
     {
-        //
+        return $entity;
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\prestacion  $prestacion
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(prestacion $prestacion)
+    public function toEntity(Request $request)
     {
-        //
-    }
+        $crear = $request->id == null;
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\prestacion  $prestacion
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, prestacion $prestacion)
-    {
-        //
-    }
+        if (!$crear) {
+            $this->validations["vigente_hasta"] = "required|date";
+            $request->validate($this->validations);
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\prestacion  $prestacion
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(prestacion $prestacion)
-    {
-        //
+            $currentPrestacion = $this->entity
+                ->where('id', $request->id)
+                ->where('vigente_hasta', null)
+                ->where('deleted_at', null)
+                ->firstOrFail();
+            $currentPrestacion->vigente_hasta = $request->vigente_hasta;
+            $currentPrestacion->save();
+        } else {
+            $request->validate($this->validations);
+        }
+
+        $prestacion = new prestacion();
+
+        $prestacion->nombre = $request->nombre;
+        $prestacion->valor = $request->valor;
+        $prestacion->especialidad_id = $request->especialidad_id;
+        $prestacion->vigente_desde = $request->vigente_desde;
+        return $prestacion;
     }
 }
