@@ -9,7 +9,7 @@ class permissions extends Model
 {
     use HasFactory;
 
-    protected $filliable = [
+    protected $fillable = [
         'slug',
         'name',
         'description',

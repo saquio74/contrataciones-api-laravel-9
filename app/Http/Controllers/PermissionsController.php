@@ -3,18 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\permissions;
+use App\Http\Controllers\BaseControllers\BaseController;
 use Illuminate\Http\Request;
 
-class PermissionsController extends Controller
+class PermissionsController extends BaseController
 {
     public $validations = [
-        "permissions" => "required",
+        "slug" => "required",
+        "name" => "required",
+        "description" => "required",
     ];
-    public function index(Request $request)
+
+    public function __construct()
     {
-        return $this->getPermissions($request)->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+        $this->entity = new permissions();
     }
-    public function getPermissions(Request $request)
+    public function validateData(Request $request, $entity)
     {
         $where = [['permissions.deleted_at', '=', null]];
 
@@ -26,45 +30,31 @@ class PermissionsController extends Controller
             array_push($where, ['permissions.description', 'like', "%$request->description%"]);
         if ($request->id) array_push($where, ['permissions.id', '=', $request->id]);
 
-        return permissions::with("permissionsrole.roles")->Where($where);
+        return $entity->Where($where);
     }
 
-
-    public function store(Request $request)
+    public function addIncludes()
     {
-        $this->ValidarModelo($request, $this->validations);
-        $permissions = new permissions($request->all());
-        $this->setBase('created', $permissions);
-        $permissions->save();
-
-        return response()->json(["message" => "Guardado correctamente"], 201);
+        return $this->entity->with("permissionsrole.roles");
+    }
+    public function addIncludesById()
+    {
+        return $this->entity->with("permissionsrole.roles");
     }
 
-    public function update(Request $request)
+    public function toEntity(Request $request)
     {
-        $this->ValidarModelo($request, $this->validations, true);
-        $permissions = permissions::find($request->id);
-        $this->setBase('updated', $permissions);
+        $crear = $request->id == null;
+        if ($crear) $this->validations["slug"] = "required|unique:permissions";
+
+        $request->validate($this->validations);
+
+        $permissions = $crear ? new permissions() : $this->GetById($request->id);
+
         $permissions->slug = $request->slug;
         $permissions->name = $request->name;
         $permissions->description = $request->description;
         $permissions->save();
-
-        return response()->json(["message" => "Guardado correctamente"], 201);
-    }
-
-    public function destroy(int $id)
-    {
-        $permissions = $this->permissionsById($id);
-        if (!$permissions) return response()->json(["mensaje" => "no se encontro permissions"], 422);
-        $this->setBase('deleted', $permissions);
-
-        $permissions->save();
-
-        return response()->json(["mensaje" => "permissions borrado correctamente"], 201);
-    }
-    public function permissionsById(int $id)
-    {
-        return $this->findById(new permissions, $id);
+        return $permissions;
     }
 }

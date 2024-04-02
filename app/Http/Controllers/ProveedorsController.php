@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\BaseControllers\BaseController;
 use App\Models\proveedors;
+use App\Models\provhosps;
 use Illuminate\Http\Request;
+use Override;
 
 class ProveedorsController extends BaseController
 {
@@ -36,7 +38,11 @@ class ProveedorsController extends BaseController
 
     public function addIncludes()
     {
-        return $this->entity->with("provhops.hospital");
+        return $this->entity;
+    }
+    public function addIncludesById()
+    {
+        return $this->entity->with("provhosp.hospital");
     }
 
     public function toEntity(Request $request)
@@ -56,6 +62,39 @@ class ProveedorsController extends BaseController
         $proveedor->dni = $request->dni;
         $proveedor->cuil = $request->cuil;
         $proveedor->genero = $request->genero;
+        $proveedor->matricula = $request->matricula;
+
+        return $proveedor;
+    }
+    public function Create(Request $request)
+    {
+        $proveedor = parent::Create($request);
+        $provhosps = [];
+        foreach ($request->provhosp as $hosp) {
+            $ph = new provhosps();
+            $ph->hospital_id = $hosp['hospital_id'];
+            $ph->proveedor_id = $proveedor->id;
+            array_push($provhosps, $ph->toArray());
+        }
+
+
+        provhosps::insert($provhosps);
+        return $proveedor;
+    }
+    public function Update(Request $request)
+    {
+        $proveedor = parent::Update($request);
+
+        $provhosps = [];
+        foreach ($request->provhosp as $hosp) {
+            $ph = new provhosps();
+            $ph->hospital_id = $hosp['hospital_id'];
+            $ph->proveedor_id = $proveedor->id;
+            array_push($provhosps, $ph->toArray());
+        }
+
+        provhosps::where('proveedor_id', $proveedor->id)->delete();
+        provhosps::insert($provhosps);
         return $proveedor;
     }
 }

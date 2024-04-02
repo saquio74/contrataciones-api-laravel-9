@@ -124,11 +124,11 @@ Route::middleware('auth:api')->group(function () {
     );
     Route::controller(BaseUrl\PermissionsController::class)->group(
         function () {
-            Route::get('/permissions', 'index');
-            Route::get('/permissions/{id}', 'permissionsById');
-            Route::post('/permissions', 'store');
-            Route::put('/permissions', 'update');
-            Route::delete('/permissions/{id}', 'destroy');
+            Route::get('/permissions', 'GetPaginateResponse');
+            Route::get('/permissions/{id}', 'GetById');
+            Route::post('/permissions', 'Create');
+            Route::put('/permissions', 'Update');
+            Route::delete('/permissions/{id}', 'Destroy');
         }
     );
     Route::controller(BaseUrl\ProveedorsController::class)->group(

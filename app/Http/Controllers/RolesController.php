@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\permissions;
 use App\Models\roles;
+use App\Models\permissionsrole;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -77,5 +79,20 @@ class RolesController extends Controller
         $usuario->save();
 
         return response()->json(["message" => "Rol modificado correctamente"], 201);
+    }
+    public function Update(Request $request)
+    {
+        $rol = roles::findOrFail($request->id);
+        $permissionsRole = permissionsrole::where('roles_id', $rol->id);
+
+        foreach ($request->permissionsrole as $permiso) {
+            $per = new permissionsrole();
+            $per->permmissions_id = $permiso['permmissions_id']; // Ajusta el nombre del campo a permissions_id
+            $per->roles_id = $rol->id; // Utiliza el ID del rol actual
+            $permisos[] = $per->toArray();
+        }
+        $permissionsRole->delete();
+        permissionsrole::insert($permisos);
+        return $rol;
     }
 }

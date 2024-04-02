@@ -32,6 +32,8 @@ class EspecialidadesController extends BaseController
     }
     public function validateData(Request $request, $entity)
     {
+        if ($request->especialidad)
+            $entity = $entity->where('especialidades.especialidad', 'like', "%" . $request->especialidad . "%");
         return $entity;
     }
     public function addIncludes()

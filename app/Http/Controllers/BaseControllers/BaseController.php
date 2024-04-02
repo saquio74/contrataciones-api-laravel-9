@@ -26,6 +26,10 @@ abstract class BaseController extends Controller
      * @return T of Model
      */
     public abstract function addIncludes();
+    /**
+     * @return T of Model
+     */
+    public abstract function addIncludesById();
 
 
     public function getAll()
@@ -50,7 +54,8 @@ abstract class BaseController extends Controller
      */
     public function GetById(int $id)
     {
-        return $this->getAll()->where(class_basename($this->entity) . '.id', '=', $id)->firstOrFail();
+        $className = class_basename($this->entity);
+        return $this->addIncludesById($this->entity)->where([[$className . '.deleted_at', '=', null], [$className . '.id', '=', $id]])->firstOrFail();
     }
 
 
