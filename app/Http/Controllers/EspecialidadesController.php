@@ -40,4 +40,8 @@ class EspecialidadesController extends BaseController
     {
         return $this->entity;
     }
+    public function addIncludesById()
+    {
+        return $this->entity;
+    }
 }

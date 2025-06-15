@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\agenfac;
 use App\Models\incisos;
-use App\Exports\AgenfacExport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 
 class AgenfacController extends Controller
 {
@@ -22,6 +23,7 @@ class AgenfacController extends Controller
     private $select = [
         "agenfac.id",
         "legajo",
+        "codigo",
         "incisos.inciso",
         "inc",
         "agente_id",
@@ -192,20 +194,16 @@ class AgenfacController extends Controller
     {
         $agentes = $this->getLiquidacion($request, ['agente', 'hospitalInfo', 'inciso'])->get();
         $agentes = $agentes->sortBy([
-            ['agente.servicio', 'asc'], ['agente.sector', 'asc'], ['agente.legajo', 'asc']
+            ['agente.servicio', 'asc'],
+            ['agente.sector', 'asc'],
+            ['agente.legajo', 'asc']
         ]);
         return $agentes->values();
     }
     public function GetPeriodos(Request $request)
     {
         return $this->getLiquidacion($request, [], [$request->columna])->distinct()->get()
-            ->map(fn ($data) => strtolower($data[$request->columna]))->sortDesc()->values()->all();
-    }
-
-    public function generarExcel(Request $request)
-    {
-        $request->validate($this->validationsExport);
-        return Excel::download(new AgenfacExport($request), "{$request->hospital_id}_{$request->periodo}_{$request->anio}.xlsx");
+            ->map(fn($data) => strtolower($data[$request->columna]))->sortDesc()->values()->all();
     }
 
     public function generarPDF(Request $request)
@@ -215,5 +213,73 @@ class AgenfacController extends Controller
         if ($getLiquidados->count() > 0)
             return $this->createPdf($getLiquidados);
         abort(400, "Sin resultados");
+    }
+    public function generarExcelV2(Request $request)
+    {
+        $request->validate($this->validationsExport);
+
+        $facturacion = agenfac::select(
+            'agentes.legajo',
+            'incisos.inciso',
+            'agentes.codigo',
+            'agentes.nombre',
+            'horas',
+            'subtot',
+            'bonvalor',
+            'total',
+            'sector.sector',
+            'servicio.servicio'
+        )
+            ->join('agentes', 'agentes.id', '=', 'agenfac.agente_id')
+            ->join('incisos', 'incisos.id', '=', 'agenfac.inc')
+            ->join('sector', 'sector.id', '=', 'agentes.sector_id')
+            ->join('servicio', 'servicio.id', '=', 'agentes.servicio_id')
+            ->orderBy('agentes.legajo')
+            ->where([['periodo', '=', $request->periodo], ['anio', '=', $request->anio], ['hospital_id', '=', $request->hospital_id]])
+            ->get();
+
+
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Datos de ejemplo
+        $row = 2;
+
+        $sheet->setTitle("Liquidacion {$request->periodo} {$request->anio}");
+        $sheet->setCellValue('A1', 'Legajo'); // This is where you set the column header
+        $sheet->setCellValue('B1', 'Inciso'); // This is where you set the column header
+        $sheet->setCellValue('C1', 'Código'); // This is where you set the column header
+        $sheet->setCellValue('D1', 'Nombre'); // This is where you set the column header
+        $sheet->setCellValue('E1', 'Horas'); // This is where you set the column header
+        $sheet->setCellValue('F1', 'Subtotal'); // This is where you set the column header
+        $sheet->setCellValue('G1', 'Bonificacion'); // This is where you set the column header
+        $sheet->setCellValue('H1', 'Total'); // This is where you set the column header
+        $sheet->setCellValue('I1', 'Sector'); // This is where you set the column header
+        $sheet->setCellValue('J1', 'Servicio'); // This is where you set the column header
+        $sheet->setCellValue('K1', 'Funcion'); // This is where you set the column header
+        foreach ($facturacion as $liquidado) {
+            $sheet->setCellValue('A' . $row, $liquidado->legajo);
+            $sheet->setCellValue('B' . $row, "inciso {$liquidado->inciso}");
+            $sheet->setCellValue('C' . $row, "COD {$liquidado->codigo}");
+            $sheet->setCellValue('D' . $row, $liquidado->nombre);
+            $sheet->setCellValue('E' . $row, $liquidado->horas);
+            $sheet->setCellValue('F' . $row, $liquidado->subtot);
+            $sheet->setCellValue('G' . $row, $liquidado->bonvalor);
+            $sheet->setCellValue('H' . $row, $liquidado->total);
+            $sheet->setCellValue('I' . $row, $liquidado->sector);
+            $sheet->setCellValue('J' . $row, $liquidado->servicio);
+            $sheet->setCellValue('K' . $row, $liquidado->servicio == "Administrativo" ? $liquidado->servicio : $liquidado->sector);
+            $row++;
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $fileName = "reporte.xlsx";
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

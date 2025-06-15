@@ -42,6 +42,7 @@ Route::middleware('auth:api')->group(function () {
     Route::controller(BaseUrl\AgenfacController::class)->group(
         function () {
             Route::get('/agenfac/getExcel', 'generarExcel');
+            Route::get('/agenfac/getExcelv2', 'generarExcelV2');
             Route::get('/agenfac/getPDF', 'generarPDF');
             Route::post('/agenfac/updateLiquidacion', 'updateAmount');
             Route::get('/agenfac/getperiodos', 'GetPeriodos');

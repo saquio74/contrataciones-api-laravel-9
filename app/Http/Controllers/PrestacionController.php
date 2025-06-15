@@ -54,4 +54,8 @@ class PrestacionController extends BaseController
         $prestacion->vigente_desde = $request->vigente_desde;
         return $prestacion;
     }
+    public function addIncludesById()
+    {
+        return $this->entity;
+    }
 }

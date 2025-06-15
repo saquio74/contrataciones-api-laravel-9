@@ -14,6 +14,7 @@ class agentes extends Model
         'id',
         'legajo',
         'dni',
+        "codigo",
         'nombre',
         'horario',
         'telefono',

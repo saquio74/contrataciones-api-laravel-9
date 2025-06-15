@@ -13,6 +13,7 @@ class AgentesController extends Controller
         "agentes.id",
         "agentes.legajo",
         "agentes.dni",
+        "agentes.codigo",
         "agentes.nombre",
         "agentes.horario",
         "agentes.telefono",
@@ -122,6 +123,7 @@ class AgentesController extends Controller
         $agente->sector_id = $request->sector_id;
         $agente->horario = $request->horario;
         $agente->telefono = $request->telefono;
+        $agente->codigo = $request->codigo;
 
 
         app(agenincController::class)->deleteIncisoByAgente($agente->id);
@@ -227,8 +229,8 @@ class AgentesController extends Controller
         ]);
         $agentes = $this->searchAgentes($request, ['sector', 'hospital', 'servicio', 'ageninc.inciso', 'liquidacionActual'])->get();
         $agentes = $agentes->sortBy([
-            fn ($a, $b) => $a['servicio_id'] <=> $b['servicio_id'],
-            fn ($a, $b) => $b['sector_id'] <=> $a['sector_id'],
+            fn($a, $b) => $a['servicio_id'] <=> $b['servicio_id'],
+            fn($a, $b) => $b['sector_id'] <=> $a['sector_id'],
         ]);
 
         return $agentes->values()->all();

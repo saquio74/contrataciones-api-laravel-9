@@ -40,6 +40,7 @@
                         <tr>
                             <td>Legajo</td>
                             <td>Inciso</td>
+                            <td>Cód</td>
                             <td>Apellido y nombre</td>
                             <td>Tot. Hs.</td>
                             <td>Importe</td>
@@ -61,6 +62,7 @@
                         <tr>
                             <td>Legajo</td>
                             <td>Inciso</td>
+                            <td>Cód</td>
                             <td>Apellido y nombre</td>
                             <td>Tot. Hs.</td>
                             <td>Importe</td>
@@ -77,6 +79,10 @@
                     <td>
 
                         {{ $liquidacion->inciso }}
+                    </td>
+                    <td>
+
+                        {{ $liquidacion->codigo }}
                     </td>
                     <td>
 

@@ -6,6 +6,7 @@ use App\Models\permissions;
 use Closure;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class validateHospitalPermmision
 {
@@ -18,7 +19,7 @@ class validateHospitalPermmision
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
+        $user = User::with('roles.permissionsrole.permissions')->find(Auth::user()->id);
         if ($user->roles->special == "all-access") return $next($request);
 
         $listaPermisos = array();

@@ -29,7 +29,7 @@ class AuthController extends Controller
 
     public function GetUser()
     {
-        $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
+        $user = User::with('roles.permissionsrole.permissions')->find(Auth::user()->id);
         return response()->json($user, 200);
     }
 
@@ -39,10 +39,10 @@ class AuthController extends Controller
             "email" => "email|required",
             "password" => 'required'
         ]);
-        if (!auth()->attempt($data)) {
+        if (!Auth::attempt($data)) {
             return response()->json(["invalid credentials"], 401);
         }
-        $user = User::with('roles.permissionsrole.permissions')->find(auth()->user()->id);
+        $user = User::with('roles.permissionsrole.permissions')->find(Auth::user()->id);
         $user->token = $user->createToken('authToken')->accessToken;
 
         return response()->json($user, 200);
@@ -87,7 +87,7 @@ class AuthController extends Controller
     }
     public function ChangePassword(Request $request)
     {
-        $currentUser = $this->GetById(Auth()->user()->id);
+        $currentUser = $this->GetById(Auth::user()->id);
 
         $request->validate(["password" => "required|confirmed"]);
 

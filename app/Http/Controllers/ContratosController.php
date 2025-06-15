@@ -47,4 +47,8 @@ class ContratosController extends BaseController
         $contrato->fecha_fin = $request->fecha_fin;
         return $contrato;
     }
+    public function addIncludesById()
+    {
+        return $this->entity;
+    }
 }
