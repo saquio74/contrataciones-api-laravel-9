@@ -16,7 +16,7 @@ class RolesController extends Controller
 
     public function index(Request $request)
     {
-        return $this->getRoles($request, ['permissionsrole.permissions', 'user'])->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
+        return $this->getRoles($request, ['permissionsroles.permissions', 'user'])->paginate($request->perPage ?? 10, $request->colums ?? ['*'], 'page', $request->page ?? 1);
     }
 
     public function getRoles(Request $request, $with = [])
